@@ -48,6 +48,20 @@
     <section class="bg-white p-6 rounded-lg shadow mb-6">
       <h2 class="font-semibold mb-3">Pagar com Cartão — (Vendorapay seguro)</h2>
       <p class="text-sm text-gray-600 mb-4">
+        Os dados do cartão são inseridos diretamente nos Hosted Fields do Vendorapay. <strong>Nenhum dado de cartão passa por este servidor.</strong>
+      </p>
+
+      <!-- wrapper do hosted fields: SDK cria iframes dentro dessas divs -->
+      <form id="hosted-card-form" class="space-y-3">
+        <div>
+          <label class="vf-label">Nome no cartão</label>
+          <input id="cardholder-name" name="cardholderName" required class="w-full border rounded p-2" placeholder="Nome como no cartão" />
+        </div>
+
+        <div>
+          <label class="vf-label">Número do cartão</label>
+          <div id="vf-number" class="vf-field"></div>
+        </div>
 
         <div class="flex gap-3">
           <div class="flex-1">
@@ -64,7 +78,7 @@
       </form>
 
       <p id="hosted-result" class="mt-3 text-sm"></p>
-      <p class="mt-2 text-xs text-gray-500"></p>
+      <p class="mt-2 text-xs text-gray-500">Servidor receberá apenas um token (paymentMethodToken). Não guarde CVV ou número de cartão.</p>
     </section>
 
     <!-- PayPal button -->
@@ -99,51 +113,63 @@
      **************************************************************************/
     (function initVendorapay(){
       if(!window.Vendorapay) {
-        hostedResult.textContent = 
+        hostedResult.textContent = 'SDK do Vendorapay não carregado. Verifique a URL do SDK.';
         return;
       }
 
       // Inicializa o SDK com sua chave pública
-/* -----------------------------
-   Vendorapay integration
------------------------------ */
-const VENDORAPAY_API_URL = 'https://vendorapay.com/api';
-const VENDORAPAY_API_KEY = '5dkxbk7i1eyagmzxkydwr5uzj6w4inpgqhhc4d08ichuz6o8914hovr0x5jn';
-const VENDORAPAY_WEBHOOK_KEY = 'ix6iv8ypxhcsm2g3zppce97w0j4m6jaxi4bg8wbgotdwnt0620jyb3thixwpdewohpo1qt3ng8nd317hmjtnrjcnwumeq66kilb56hpcrp13brg8ci32zq6r';
+      Vendorapay.init({ clientKey: 'YOUR_VENDORAPAY_CLIENT_KEY' });
 
-app.post('/api/vendorapay/pay', async (req, res) => {
-  try {
-    const { phone, amount } = req.body;
-    if (!phone) return res.status(400).json({ error: 'Telefone é obrigatório' });
+      // Cria hosted fields — isso cria iframes seguros para número, expiry e cvv
+      Vendorapay.hostedFields.create({
+        styles: {
+          'input': { 'font-size': '16px', 'color': '#111827' },
+          ':focus': { 'outline': 'none' }
+        },
+        fields: {
+          number: { selector: '#vf-number', placeholder: '•••• •••• •••• ••••' },
+          expiry: { selector: '#vf-expiry', placeholder: 'MM / AA' },
+          cvv: { selector: '#vf-cvv', placeholder: 'CVV' }
+        }
+      }).then(hostedFieldsInstance => {
+        // Form submit: tokenize (gera token que representa o cartão)
+        const form = document.getElementById('hosted-card-form');
+        form.addEventListener('submit', async (ev) => {
+          ev.preventDefault();
+          hostedResult.textContent = 'Processando...';
 
-    const payload = {
-      apiKey: VENDORAPAY_API_KEY,
-      msisdn: phone,
-      amount: amount || 400,
-      reference: `MZTECH-${Date.now()}`,
-      callbackUrl: `${req.protocol}://${req.get('host')}/api/vendorapay/webhook`
-    };
+          try {
+            const cardholderName = document.getElementById('cardholder-name').value.trim();
 
-    const response = await axios.post(`${VENDORAPAY_API_URL}/pay`, payload, { headers: { 'Content-Type': 'application/json' } });
-    res.json({ success: true, data: response.data, message: 'Pagamento enviado para Vendorapay' });
-  } catch (err) {
-    console.error('Vendorapay payment error', err.response ? err.response.data : err.message);
-    res.status(500).json({ error: 'Erro ao iniciar Vendorapay', details: err.response ? err.response.data : err.message });
-  }
-});
+            // Tokeniza — recebe objeto com token (ex: { token: 'pm_abc123' })
+            const tokenResponse = await hostedFieldsInstance.tokenize({ cardholderName });
+            // tokenResponse.paymentMethodToken assume-se como retorno; ajuste conforme SDK real.
+            const paymentMethodToken = tokenResponse.paymentMethodToken || tokenResponse.token;
+            if(!paymentMethodToken) throw new Error('Tokenização falhou: resposta inesperada.');
 
-// Webhook endpoint
-app.post('/api/vendorapay/webhook', (req, res) => {
-  const signature = req.headers['x-vendorapay-signature'];
-  if (signature !== VENDORAPAY_WEBHOOK_KEY) {
-    console.warn('Webhook Vendorapay inválido:', signature);
-    return res.status(403).send('Forbidden');
-  }
+            // Envie SÓ o token e dados não sensíveis ao seu servidor
+            const res = await fetch('/api/vendorapay/charge', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ paymentMethodToken, amount: PRICE })
+            });
 
-  console.log('Webhook Vendorapay recebido:', req.body);
-  // Aqui você deve atualizar status do pedido no seu banco de dados
-  res.status(200).send('OK');
-});
+            const j = await res.json();
+            if(res.ok) {
+              hostedResult.textContent = j.message || 'Pagamento efetuado com sucesso (servidor).';
+            } else {
+              hostedResult.textContent = j.error || 'Erro no processamento do pagamento no servidor.';
+            }
+          } catch (err) {
+            console.error(err);
+            hostedResult.textContent = 'Erro: ' + (err.message || err);
+          }
+        });
+      }).catch(err => {
+        console.error('Erro criando Hosted Fields:', err);
+        hostedResult.textContent = 'Não foi possível inicializar campos de cartão seguros. ' + (err.message || '');
+      });
+    })();
 
     /***********************
      * PayPal Buttons
