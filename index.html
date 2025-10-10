@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
@@ -116,6 +116,11 @@
             border-top: 1px solid #ecf0f1;
             margin: 30px 0;
         }
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -168,6 +173,7 @@
             </div>
             
             <button type="submit" class="buy-button">Comprar Produto</button>
+            <div class="error" id="errorMessage"></div>
         </form>
         
         <div class="divider"></div>
@@ -180,17 +186,99 @@
     </div>
     
     <script>
-        // Validação básica simples para o formulário
-        document.getElementById('checkoutForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Compra simulada! Integre com API de pagamento para processar de verdade.');
-        });
+        // Configuração das chaves
+        const API_KEY = '5dkxbk7i1eyagmzxkydwr5uzj6w4inpgqhhc4d08ichuz6o8914hovr0x5jn';
+        // ATENÇÃO: NUNCA exponha a API_KEY no front-end em produção!
         
-        // Formatação para número de cartão (espaços)
+        // Formatação do número do cartão
         document.getElementById('cardNumber').addEventListener('input', function(e) {
             let value = e.target.value.replace(/\s/g, '').replace(/(\d{4})(?=\d)/g, '$1 ');
             e.target.value = value;
         });
-    </script>
-</body>
-</html>
+
+        // Submissão do formulário com chamada à API
+        document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+            const expiry = document.getElementById('expiry').value;
+            const cvv = document.getElementById('cvv').value;
+            const cardType = document.querySelector('input[name="cardType"]:checked').value;
+            const errorMessage = document.getElementById('errorMessage');
+
+            // Validação básica
+            if (!name || !cardNumber || !expiry || !cvv || !cardType) {
+                errorMessage.textContent = 'Por favor, preencha todos os campos.';
+                return;
+            }
+
+            // Dados do pagamento
+            const paymentData = {
+                amount: 300, // Valor em MZN
+                currency: 'MZN',
+                card: {
+                    number: cardNumber,
+                    expiry: expiry,
+                    cvv: cvv,
+                    type: cardType,
+                    name: name
+                },
+                description: 'Compra de As 50 melhores receitas de cozinha'
+            };
+
+            try {
+                // Exemplo de chamada à API (substitua pela URL real da VendoraPay ou outra)
+                const response = await fetch('https://api.vendorapay.com/payments', { // URL fictícia
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_KEY}`
+                    },
+                    body: JSON.stringify(paymentData)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('Pagamento processado com sucesso! ID da transação: ' + result.transactionId);
+                    errorMessage.textContent = '';
+                } else {
+                    errorMessage.textContent = result.error || 'Erro ao processar o pagamento.';
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Erro de conexão com a API. Tente novamente.';
+                console.error(error);
+            }
+        });
+
+        // Exemplo de configuração de um endpoint de webhook (requer backend)
+        /*
+        const WEBHOOK_SECRET = 'ix6iv8ypxhcsm2g3zppce97w0j4m6jaxi4bg8wbgotdwnt0620jyb3thixwpdewohpo1qt3ng8nd317hmjtnrjcnwumeq66kilb56hpcrp13brg8ci32zq6r';
+        
+        // Exemplo para Node.js com Express (coloque isso em um servidor separado)
+        const express = require('express');
+        const app = express();
+        app.use(express.json());
+
+        app.post('/webhook/payments', (req, res) => {
+            const signature = req.headers['x-vendorapay-signature']; // Verifique o header de assinatura
+            const payload = req.body;
+
+            // Verificar assinatura do webhook (exemplo simplificado)
+            const crypto = require('crypto');
+            const computedSignature = crypto.createHmac('sha256', WEBHOOK_SECRET)
+                .update(JSON.stringify(payload))
+                .digest('hex');
+
+            if (signature === computedSignature) {
+                console.log('Webhook recebido:', payload);
+                // Processar o evento (ex.: atualizar status do pedido)
+                res.status(200).send('Webhook recebido');
+            } else {
+                res.status(400).send('Assinatura inválida');
+            }
+        });
+
+        app.listen(3000, () =>                    
+            
