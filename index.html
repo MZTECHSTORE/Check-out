@@ -134,53 +134,64 @@
                 return;
             }
 
-            try {
-                const response = await fetch(`${API_BASE}/payment/mobile`, {
-                    method: 'POST',
-                    headers: {
-                        'apiKey': API_KEY,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        method: 'mpesa',
-                        amount: AMOUNT,
-                        context: CONTEXT,
-                        useremail: 'cliente@exemplo.com',
-                        userwhatsApp: phone,
-                        phone: `258${phone}` // Adicionei prefixo, ajuste se necessário
-                    })
-                });
+        async function createCardPayment() {
+    const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
+    const cardExpiry = document.getElementById('card-expiry').value;
+    const cardCvv = document.getElementById('card-cvv').value;
+    const cardHolder = document.getElementById('card-holder').value;
+    const statusDiv = document.getElementById('status');
 
-                const data = await response.json();
-                console.log('Resposta API (M-Pesa):', data); // Log completo
-                if (data.success) {
-                    updateStatus('Pagamento M-Pesa iniciado! Verifique seu telefone.');
-                } else {
-                    updateStatus(`Erro: ${data.error || data.message || 'Acesso negado. Contate o administrador.'}`, true);
+    // Validações
+    if (!cardNumber || !/^\d{16}$/.test(cardNumber)) {
+        statusDiv.textContent = 'Número do cartão inválido (16 dígitos).';
+        return;
+    }
+    if (!cardExpiry || !/^(0[1-9]|1[0-2])\/\d{2}$/.test(cardExpiry)) {
+        statusDiv.textContent = 'Validade inválida (use MM/AA, ex.: 12/25).';
+        return;
+    }
+    if (!cardCvv || !/^\d{3,4}$/.test(cardCvv)) {
+        statusDiv.textContent = 'CVV inválido (3 ou 4 dígitos).';
+        return;
+    }
+    if (!cardHolder) {
+        statusDiv.textContent = 'Informe o nome no cartão.';
+        return;
+    }
+
+    statusDiv.textContent = 'Processando pagamento com cartão...';
+
+    try {
+        const response = await fetch(`${API_BASE}/payment/card`, {
+            method: 'POST',
+            headers: {
+                'apiKey': '5dkxbk7i1eyagmzxkydwr5uzj6w4inpgqhhc4d08ichuz6o8914hovr0x5jn',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                amount: 1000, // Ajuste o valor
+                context: 'Pagamento do Produto Personalizado',
+                callbackUrl: 'https://seusite.com/webhook',
+                currency: 'MZN',
+                enviroment: 'dev', // Confirme com Vendorapay
+                card: {
+                    number: cardNumber,
+                    expiry: cardExpiry,
+                    cvv: cardCvv,
+                    holder: cardHolder
                 }
-            } catch (error) {
-                console.error('Erro completo (M-Pesa):', error);
-                updateStatus(`Erro de conexão: ${error.message}. Verifique o console.`, true);
-            }
-        }
+            })
+        });
 
-        async function checkStatus(txnId) {
-            try {
-                updateStatus('Verificando status...');
-                const response = await fetch(`${API_BASE}/payment/status`, {
-                    method: 'POST',
-                    headers: { 'apiKey': API_KEY, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: txnId })
-                });
-                const data = await response.json();
-                console.log('Status:', data);
-                updateStatus(`Status: ${data.status || 'Desconhecido'}`);
-                return data;
-            } catch (error) {
-                updateStatus('Erro ao verificar status.', true);
-                console.error('Erro no checkStatus:', error);
-            }
+        const data = await response.json();
+        console.log('Resposta API:', data);
+        if (data.success) {
+            statusDiv.textContent = 'Pagamento processado! Aguardando confirmação.';
+        } else {
+            statusDiv.textContent = `Erro: ${data.error || data.message || 'Contacte o administrador.'}`;
         }
-    </script>
-</body>
-</html>
+    } catch (error) {
+        console.error('Erro completo:', error);
+        statusDiv.textContent = `Erro de conexão: ${error.message}. Verifique sua internet.`;
+    }
+}
