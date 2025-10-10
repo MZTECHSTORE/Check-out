@@ -14,6 +14,7 @@
         button { background: #007bff; color: white; padding: 10px 20px; border: none; cursor: pointer; font-size: 16px; margin: 5px; }
         button:hover { background: #0056b3; }
         #status { margin-top: 20px; padding: 10px; background: #f8f9fa; border-radius: 5px; }
+        .error { color: #dc3545; background: #f8d7da; }
     </style>
 </head>
 <body>
@@ -63,9 +64,20 @@
         const CALLBACK_URL = 'https://seusite.com/webhook'; // Substitua pela sua URL de webhook
         const API_BASE = 'https://vendorapay.com/api';
 
+        function updateStatus(message, isError = false) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = message;
+            if (isError) {
+                statusDiv.classList.add('error');
+            } else {
+                statusDiv.classList.remove('error');
+            }
+            console.log(message); // Log para console
+        }
+
         async function createCardPayment() {
             const statusDiv = document.getElementById('status');
-            statusDiv.innerHTML = 'Processando pagamento com cartão...';
+            statusDiv.innerHTML = ''; // Limpa status anterior
 
             const cardNumber = document.getElementById('card-number').value.replace(/\s/g, '');
             const cardExpiry = document.getElementById('card-expiry').value;
@@ -74,21 +86,23 @@
 
             // Validações básicas
             if (!cardNumber || !cardExpiry || !cardCvv || !cardHolder) {
-                statusDiv.innerHTML = 'Por favor, preencha todos os campos do cartão.';
+                updateStatus('Por favor, preencha todos os campos do cartão.', true);
                 return;
             }
             if (!/^\d{16}$/.test(cardNumber)) {
-                statusDiv.innerHTML = 'Número do cartão inválido (16 dígitos).';
+                updateStatus('Número do cartão inválido (16 dígitos).', true);
                 return;
             }
             if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) {
-                statusDiv.innerHTML = 'Validade do cartão inválida (use MM/AA).';
+                updateStatus('Validade do cartão inválida (use MM/AA).', true);
                 return;
             }
             if (!/^\d{3,4}$/.test(cardCvv)) {
-                statusDiv.innerHTML = 'CVV inválido (3 ou 4 dígitos).';
+                updateStatus('CVV inválido (3 ou 4 dígitos).', true);
                 return;
             }
+
+            updateStatus('Processando pagamento com cartão...');
 
             try {
                 const response = await fetch(`${API_BASE}/payment/card`, {
@@ -102,10 +116,10 @@
                         context: CONTEXT,
                         callbackUrl: CALLBACK_URL,
                         currency: 'MZN',
-                        enviroment: 'dev', // Mude para 'dev' em testes
+                        enviroment: 'dev', // MUDE PARA 'dev' PARA TESTES
                         card: {
                             number: cardNumber,
-                            expiry: cardExpiry, // Formato MM/AA
+                            expiry: cardExpiry,
                             cvv: cardCvv,
                             holder: cardHolder
                         }
@@ -113,30 +127,36 @@
                 });
 
                 const data = await response.json();
+                console.log('Resposta completa da API:', data); // Log detalhado
+
                 if (data.success) {
-                    statusDiv.innerHTML = 'Pagamento com cartão processado com sucesso! Aguardando confirmação.';
-                    // Opcional: Chame checkStatus(data.id) para verificar
+                    updateStatus('Pagamento com cartão processado com sucesso! Aguardando confirmação.');
+                    // Opcional: checkStatus(data.id);
                 } else {
-                    statusDiv.innerHTML = `Erro: ${data.error || 'Falha no processamento do cartão.'}`;
+                    const errorMsg = data.error || data.message || 'Falha no processamento do cartão.';
+                    updateStatus(`Erro detalhado: ${errorMsg}. Verifique o console para mais info.`, true);
                 }
             } catch (error) {
-                statusDiv.innerHTML = `Erro de conexão: ${error.message}`;
+                const errorMsg = error.message || 'Erro de conexão desconhecido.';
+                updateStatus(`Erro de conexão: ${errorMsg}. Verifique sua internet.`, true);
+                console.error('Erro completo:', error);
             }
         }
 
         async function createMpesaPayment() {
             const phone = document.getElementById('mpesa-phone').value;
             const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = ''; // Limpa status anterior
             
             if (!phone || !/^\d{9}$/.test(phone)) {
-                statusDiv.innerHTML = 'Insira um número M-Pesa válido (ex: 841234567).';
+                updateStatus('Insira um número M-Pesa válido (ex: 841234567).', true);
                 return;
             }
 
-            statusDiv.innerHTML = 'Iniciando pagamento M-Pesa...';
+            updateStatus('Iniciando pagamento M-Pesa...');
 
             const userEmail = 'cliente@exemplo.com'; // Colete do formulário
-            const userWhatsApp = phone; // Ajuste conforme necessário
+            const userWhatsApp = phone;
 
             try {
                 const response = await fetch(`${API_BASE}/payment/mobile`, {
@@ -156,18 +176,24 @@
                 });
 
                 const data = await response.json();
+                console.log('Resposta completa da API (M-Pesa):', data); // Log detalhado
+
                 if (data.success) {
-                    statusDiv.innerHTML = 'Pagamento M-Pesa iniciado! Verifique seu telefone para confirmação.';
+                    updateStatus('Pagamento M-Pesa iniciado! Verifique seu telefone para confirmação.');
                 } else {
-                    statusDiv.innerHTML = `Erro: ${data.error || 'Falha ao iniciar M-Pesa.'}`;
+                    const errorMsg = data.error || data.message || 'Falha ao iniciar M-Pesa.';
+                    updateStatus(`Erro detalhado: ${errorMsg}. Verifique o console para mais info.`, true);
                 }
             } catch (error) {
-                statusDiv.innerHTML = `Erro de conexão: ${error.message}`;
+                const errorMsg = error.message || 'Erro de conexão desconhecido.';
+                updateStatus(`Erro de conexão: ${errorMsg}. Verifique sua internet.`, true);
+                console.error('Erro completo:', error);
             }
         }
 
         async function checkStatus(txnId) {
             try {
+                updateStatus('Verificando status...');
                 const response = await fetch(`${API_BASE}/payment/status`, {
                     method: 'POST',
                     headers: {
@@ -177,10 +203,12 @@
                     body: JSON.stringify({ id: txnId })
                 });
                 const data = await response.json();
-                console.log('Status:', data);
+                console.log('Status completo:', data);
+                updateStatus(`Status: ${data.status || 'Desconhecido'}. Detalhes no console.`);
                 return data;
             } catch (error) {
-                console.error('Erro ao verificar status:', error);
+                updateStatus('Erro ao verificar status.', true);
+                console.error('Erro no checkStatus:', error);
             }
         }
     </script>
