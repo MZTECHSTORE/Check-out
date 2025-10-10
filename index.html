@@ -1,225 +1,139 @@
-<!--
-Checkout completo — MZ TECH STORE
-- Frontend (HTML single file): Tailwind + PayPal Hosted Fields + PayPal Buttons + M-Pesa + e-Mola
-- Design: cores personalizadas (preto, azul escuro, degradê tecnológico)
-- Imagens: espaço para capa (assets/cover.jpg) e imagem do produto (assets/product.jpg)
-- Backend: Node.js/Express endpoints incluídos (create-order, capture, mpesa, emola)
-- Docker: Dockerfile + docker-compose.yml incluídos ao final
-
-IMPORTANTE: Substitua valores placeholder (PAYPAL_CLIENT_ID, PAYPAL_SECRET) e adicione as imagens em /assets.
---><!doctype html>
-
+<!doctype html>
 <html lang="pt">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MZ TECH STORE — Checkout</title>
-  <script src="https://vendorapay.com"></script>
-  <!-- PayPal SDK com Hosted Fields -->
-  <script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID&components=buttons,hosted-fields&intent=capture&currency=MZN"></script>
-  <style>
-    /* Cores personalizadas: degradê tecnológico */
-    :root{
-      --mz-dark:#0b1220; /* quase preto azulado */
-      --mz-blue:#0ea5e9; /* azul vibrante */
-      --mz-accent:#6b21a8; /* roxo para contraste */
-    }
-    .mz-gradient{background:linear-gradient(135deg,var(--mz-dark),#071027 40%, #001427 60%);}    
-  </style>
+  <title>MZ TECH STORE — Checkout Seguro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Vendorapay Hosted Fields SDK (assumido) -->
+  <script src="https://vendorapay.com/sdk/hosted-fields.js"></script>
+
+  <!-- PayPal SDK (substitua YOUR_PAYPAL_CLIENT_ID) -->
+  <script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID&components=buttons&intent=capture&currency=MZN"></script>
 </head>
-<body class="mz-gradient min-h-screen text-gray-100 font-sans">
-  <div class="max-w-4xl mx-auto p-6">
-    <!-- Header / Capa -->
-    <header class="rounded-lg overflow-hidden shadow-lg mb-6">
-      <img src="assets/cover.jpg" alt="Capa MZ TECH STORE" class="w-full h-48 object-cover" onerror="this.style.filter='grayscale(30%)'" />
-      <div class="p-4 bg-gradient-to-r from-transparent to-black/50 -mt-12">
-        <h1 class="text-3xl font-extrabold">MZ TECH STORE</h1>
-        <p class="text-sm text-gray-300">Checkout seguro — PayPal, Visa/MasterCard (via PayPal Hosted Fields), M-Pesa e e-Mola</p>
-      </div>
-    </header><main class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-  <!-- Product card -->
-  <aside class="bg-white/5 p-4 rounded-lg shadow-inner">
-    <img src="assets/product.jpg" alt="Produto" class="w-full h-48 object-contain rounded-md bg-black/20 mb-4" />
-    <h2 class="text-xl font-semibold">Produto Personalizado</h2>
-    <p class="text-sm text-gray-300 mb-4">Descrição curta do produto. Inclua características, garantia e o que mais quiser.</p>
-    <div class="flex items-center justify-between">
-      <div>
-        <div class="text-2xl font-bold">400 MZN</div>
-        <div class="text-xs text-gray-400">Envio digital — entrega imediata após confirmação</div>
-      </div>
-      <div>
-        <button id="whatsapp-btn" class="bg-green-500 text-black px-3 py-2 rounded-md">Contactar (WhatsApp)</button>
-      </div>
-    </div>
-  </aside>
+<body class="bg-gradient-to-br from-gray-900 via-blue-900 to-gray-800 text-gray-100 font-sans">
+  <div class="max-w-3xl mx-auto p-6">
+    <header class="mb-6 text-center">
+      <h1 class="text-3xl font-bold mb-2">MZ TECH STORE — Checkout</h1>
+      <p class="text-gray-300">Produto: <strong>Produto Personalizado</strong> — Preço: <span id="product-price">400 MZN</span></p>
+      <img src="/assets/product.jpg" alt="Produto" class="mx-auto mt-4 rounded-lg shadow-lg w-full max-w-sm">
+    </header>
 
-  <!-- Checkout area -->
-  <section class="p-4 bg-white/6 rounded-lg">
-    <h3 class="text-lg font-semibold mb-3">Finalizar compra</h3>
+    <!-- Vendorapay Hosted Fields -->
+    <section class="bg-gray-800 p-6 rounded-xl shadow-lg mb-6">
+      <h2 class="text-xl font-semibold mb-3 text-purple-400">💳 Pagar com Cartão (Vendorapay)</h2>
+      <p class="text-sm text-gray-400 mb-3">Dados do cartão nunca tocam seu servidor — Hosted Fields + tokenização.</p>
 
-    <!-- PayPal Hosted Fields (Cartão via PayPal) -->
-    <div class="mb-4 p-4 bg-white/5 rounded">
-      <h4 class="font-medium mb-2">Pagar com Cartão (Visa/MasterCard via PayPal)</h4>
-      <div id="card-form" class="space-y-3">
-        <label class="block text-sm">Nome no cartão</label>
-        <input id="card-name" class="w-full p-2 rounded bg-white/10" placeholder="Nome completo" />
-
-        <div id="hosted-fields" class="space-y-2">
-          <div>
-            <label class="text-sm">Número do cartão</label>
-            <div id="card-number" class="p-2 rounded bg-white/10"></div>
-          </div>
-          <div class="flex gap-3">
-            <div class="flex-1">
-              <label class="text-sm">MM/AA</label>
-              <div id="card-expiry" class="p-2 rounded bg-white/10"></div>
-            </div>
-            <div class="w-28">
-              <label class="text-sm">CVV</label>
-              <div id="card-cvv" class="p-2 rounded bg-white/10"></div>
-            </div>
-          </div>
+      <div id="vendorapay-form" class="space-y-3">
+        <div id="card-number-container" class="p-3 bg-gray-700 rounded-lg"></div>
+        <div class="flex gap-3">
+          <div id="card-expiry-container" class="flex-1 p-3 bg-gray-700 rounded-lg"></div>
+          <div id="card-cvv-container" class="w-28 p-3 bg-gray-700 rounded-lg"></div>
         </div>
 
-        <button id="pay-card-btn" class="bg-gradient-to-r from-sky-500 to-violet-600 px-4 py-2 rounded font-semibold">Pagar com Cartão</button>
-        <div id="card-msg" class="text-sm mt-2"></div>
-      </div>
-    </div>
+        <input id="customer-name" type="text" class="w-full p-3 rounded-lg" placeholder="Nome do titular" />
 
-    <!-- PayPal Buttons (PayPal account or card) -->
-    <div class="mb-4 p-4 bg-white/5 rounded">
-      <h4 class="font-medium mb-2">Pagar com PayPal</h4>
+        <button id="vendorapay-submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-lg font-bold transition-all">
+          Pagar Agora — 400 MZN
+        </button>
+      </div>
+
+      <p id="vendorapay-status" class="mt-2 text-sm text-green-400"></p>
+    </section>
+
+    <!-- PayPal -->
+    <section class="bg-gray-800 p-6 rounded-xl shadow-lg mb-6">
+      <h2 class="text-xl font-semibold mb-3 text-blue-400">💰 Pagar com PayPal</h2>
       <div id="paypal-button-container"></div>
-    </div>
+    </section>
 
     <!-- M-Pesa -->
-    <div class="mb-4 p-4 bg-white/5 rounded">
-      <h4 class="font-medium mb-2">Pagar com M-Pesa</h4>
+    <section class="bg-gray-800 p-6 rounded-xl shadow-lg mb-6">
+      <h2 class="text-xl font-semibold mb-3 text-green-400">📱 Pagar com M-Pesa</h2>
       <div class="flex gap-3">
-        <input id="mpesa-phone" class="flex-1 p-2 rounded bg-white/10" placeholder="25884xxxxxxx" />
-        <button id="mpesa-btn" class="bg-green-600 px-3 py-2 rounded">Pagar</button>
+        <input id="mpesa-phone" placeholder="Número M-Pesa (ex: 25884xxxxxxx)" class="flex-1 p-3 rounded-lg border-none focus:ring-2 focus:ring-green-500"/>
+        <button id="mpesa-btn" class="bg-green-600 hover:bg-green-700 p-3 rounded-lg text-white font-bold transition-all">Pagar</button>
       </div>
-      <div id="mpesa-status" class="text-sm mt-2"></div>
-    </div>
+      <p id="mpesa-status" class="mt-2 text-sm text-green-300"></p>
+    </section>
 
-    <!-- e-Mola -->
-    <div class="p-4 bg-white/5 rounded">
-      <h4 class="font-medium mb-2">Pagar com e-Mola</h4>
-      <div class="flex gap-3">
-        <input id="emola-phone" class="flex-1 p-2 rounded bg-white/10" placeholder="898xxxx / 2588xxxxxxx" />
-        <button id="emola-btn" class="bg-yellow-500 px-3 py-2 rounded">Pagar</button>
-      </div>
-      <div id="emola-status" class="text-sm mt-2"></div>
-    </div>
+    <footer class="text-xs text-gray-400 mt-6 text-center">
+      ✅ Seguro: Hosted Fields + tokenização — nenhum dado sensível no servidor.
+    </footer>
+  </div>
 
-  </section>
-</main>
+<script>
+const PRICE = 400;
 
-<footer class="text-xs text-gray-300 mt-6">Trocar placeholders: <strong>YOUR_PAYPAL_CLIENT_ID</strong>, adicionar imagens em <code>/assets/</code> e configurar variáveis de ambiente no servidor.</footer>
+// --- Vendorapay Hosted Fields setup ---
+// Observação: o SDK abaixo é um exemplo; ajuste conforme SDK real da Vendorapay.
+const vendorapay = new Vendorapay.HostedFields({
+  // NÃO coloque API key pública aqui se Provider exigir servidor para inicializar o JS;
+  // ajuste conforme a documentação do SDK do Vendorapay.
+  container: 'vendorapay-form',
+  fields: {
+    number: { selector: '#card-number-container', placeholder: 'Número do cartão' },
+    expiry: { selector: '#card-expiry-container', placeholder: 'MM/AA' },
+    cvv: { selector: '#card-cvv-container', placeholder: 'CVV' }
+  },
+  style: {
+    base: { color: '#fff', fontSize: '16px', '::placeholder': { color: '#aaa' } },
+    focus: { color: '#fff', borderColor: '#8b5cf6' }
+  }
+});
 
-  </div>  <script>
-    const PRICE = '400';
-
-    // PayPal Buttons (client creates order by calling server)
-    paypal.Buttons({
-      createOrder: function() {
-        return fetch('/api/paypal/create-order', { method: 'POST' }).then(res => res.json()).then(data => data.id);
-      },
-      onApprove: function(data) {
-        return fetch('/api/paypal/capture/' + data.orderID, { method: 'POST' }).then(res => res.json()).then(details => alert('Pagamento concluído. Obrigado!'));
-      }
-    }).render('#paypal-button-container');
-
-    // Hosted Fields (PayPal) - requer que a ordem exista no servidor e que Hosted Fields esteja habilitado na conta
-    // Este é um exemplo básico; adapte às suas necessidades e verifique a documentação PayPal.
-    paypal.HostedFields && paypal.HostedFields.render({
-      createOrder: function () {
-        // Cria a ordem no servidor
-        return fetch('/api/paypal/create-order', { method: 'post' }).then(res => res.json()).then(data => data.id);
-      },
-      styles: {
-        'input': { 'color': '#fff', 'font-size': '16px' },
-        ':focus': { 'color': '#000' }
-      },
-      fields: {
-        number: { selector: '#card-number', placeholder: '4111 1111 1111 1111' },
-        expirationDate: { selector: '#card-expiry', placeholder: 'MM/AA' },
-        cvv: { selector: '#card-cvv', placeholder: '123' }
-      }
-    }).then(function (hostedFieldsInstance) {
-      document.getElementById('pay-card-btn').addEventListener('click', function () {
-        hostedFieldsInstance.submit({
-          cardholderName: document.getElementById('card-name').value
-        }).then(function (payload) {
-          // payload contains orderId / response — capture on server
-          fetch('/api/paypal/capture/' + payload.orderId, { method: 'POST' }).then(r => r.json()).then(j => {
-            document.getElementById('card-msg').textContent = 'Pagamento por cartão concluído.';
-          });
-        }).catch(function (err) {
-          document.getElementById('card-msg').textContent = err && err.message ? err.message : 'Erro no pagamento';
-        });
-      });
-    }).catch(function(err){
-      console.warn('Hosted Fields não disponível', err);
-      document.getElementById('card-msg').textContent = 'Hosted Fields não disponível. Use PayPal ou contate suporte.';
+// When user clicks pay: create token via Hosted Fields and send token to server
+document.getElementById('vendorapay-submit').addEventListener('click', async () => {
+  document.getElementById('vendorapay-status').textContent = 'Processando...';
+  try {
+    // createToken() is provided by Vendorapay Hosted Fields SDK; returns a token (nonce)
+    const tokenResult = await vendorapay.createToken({
+      cardholderName: document.getElementById('customer-name').value || 'Cliente'
     });
 
-    // M-Pesa
-    document.getElementById('mpesa-btn').addEventListener('click', async () => {
-      const phone = document.getElementById('mpesa-phone').value.trim();
-      if (!phone) return alert('Insira número M-Pesa');
-      document.getElementById('mpesa-status').textContent = 'Iniciando...';
-      const res = await fetch('/api/mpesa/stkpush', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ phone, amount: PRICE }) });
-      const j = await res.json();
-      document.getElementById('mpesa-status').textContent = j.message || JSON.stringify(j);
+    if (!tokenResult || !tokenResult.token) throw new Error('Falha ao gerar token');
+
+    // send token to your server to create a charge (server uses VENDORAPAY_API_KEY)
+    const res = await fetch('/api/vendorapay/charge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: tokenResult.token,
+        amount: PRICE,
+        currency: 'MZN',
+        description: 'Compra MZ TECH STORE'
+      })
     });
 
-    // e-Mola
-    document.getElementById('emola-btn').addEventListener('click', async () => {
-      const phone = document.getElementById('emola-phone').value.trim();
-      if (!phone) return alert('Insira número e-Mola');
-      document.getElementById('emola-status').textContent = 'Iniciando...';
-      const res = await fetch('/api/emola/pay', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ phone, amount: PRICE }) });
-      const j = await res.json();
-      document.getElementById('emola-status').textContent = j.message || JSON.stringify(j);
-    });
+    const j = await res.json();
+    if (res.ok && j.success) {
+      document.getElementById('vendorapay-status').textContent = '✅ Pagamento concluído: ' + (j.transactionId || '');
+    } else {
+      document.getElementById('vendorapay-status').textContent = '❌ Falha: ' + (j.message || JSON.stringify(j));
+    }
+  } catch (err) {
+    document.getElementById('vendorapay-status').textContent = '❌ Erro: ' + err.message;
+  }
+});
 
-    // WhatsApp button
-    document.getElementById('whatsapp-btn').addEventListener('click', ()=>{
-      const txt = encodeURIComponent('Olá, quero comprar o Produto Personalizado por 400 MZN');
-      window.open('https://wa.me/258848649797?text='+txt,'_blank');
-    });
-  </script>  <!-- ===================== BACKEND (Node.js / Express) + DOCKER =====================
+// --- PayPal Buttons (calls server to create order) ---
+paypal.Buttons({
+  createOrder: () => fetch('/api/paypal/create-order', { method:'POST' }).then(r => r.json()).then(data => data.id),
+  onApprove: (data) => fetch('/api/paypal/capture/' + data.orderID, { method:'POST' }).then(r => r.json()).then(()=> alert('Pagamento PayPal concluído!'))
+}).render('#paypal-button-container');
 
-  // server.js (Node/Express) - contem os endpoints de exemplo (create-order, capture, mpesa, emola)
-  // Use as versões já presentes no arquivo anterior e adapte as rotas conforme necessário.
-
-  // Dockerfile (para o servidor Node)
-  # ---------- Dockerfile ----------
-  # FROM node:18-alpine
-  # WORKDIR /app
-  # COPY package*.json ./
-  # RUN npm install --production
-  # COPY . .
-  # EXPOSE 3000
-  # CMD ["node","server.js"]
-  # ----------------------------------
-
-  # docker-compose.yml
-  # version: '3.8'
-  # services:
-  #   mz-checkout:
-  #     build: .
-  #     ports:
-  #       - "3000:3000"
-  #     environment:
-  #       - PAYPAL_CLIENT_ID=your_client_id
-  #       - PAYPAL_SECRET=your_secret
-  #     volumes:
-  #       - ./:/app
-  #
-  # Coloque suas imagens em ./assets (cover.jpg, product.jpg) e rode:
-  # docker compose up --build
-
-  ===================================================================================== --></body>
+// --- M-Pesa ---
+document.getElementById('mpesa-btn').addEventListener('click', async () => {
+  const phone = document.getElementById('mpesa-phone').value.trim();
+  if (!phone) return alert('Insira número M-Pesa');
+  document.getElementById('mpesa-status').textContent = 'Solicitando STK Push...';
+  const res = await fetch('/api/mpesa/stkpush', {
+    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ phone, amount: PRICE })
+  });
+  const j = await res.json();
+  document.getElementById('mpesa-status').textContent = j.message || JSON.stringify(j);
+});
+</script>
+</body>
 </html>
