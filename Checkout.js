@@ -1,25 +1,3 @@
-<!doctype html>
-<html lang="pt">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MZ TECH STORE — Checkout Seguro</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            mzblue: '#1E40AF',
-            mzgreen: '#059669',
-            mzpurple: '#7C3AED',
-            mzgray: '#F3F4F6'
-          }
-        }
-      }
-    }
-  </script>
-
   <!-- SDK placeholder do Vendorapay: substitua pela URL real do SDK -->
   <script src="https://cdn.vendorapay.com/sdk.js"></script>
   <!-- PayPal SDK (mantido) -->
