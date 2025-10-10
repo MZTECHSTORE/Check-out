@@ -1,139 +1,137 @@
-<!doctype html>
-<html lang="pt">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MZ TECH STORE — Checkout Seguro</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Vendorapay Hosted Fields SDK (assumido) -->
-  <script src="https://vendorapay.com/sdk/hosted-fields.js"></script>
-
-  <!-- PayPal SDK (substitua YOUR_PAYPAL_CLIENT_ID) -->
-  <script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID&components=buttons&intent=capture&currency=MZN"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Produto Personalizado</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .product { border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; }
+        .price { font-size: 24px; color: #28a745; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; cursor: pointer; font-size: 16px; margin: 5px; }
+        button:hover { background: #0056b3; }
+        #mpesa-phone { margin: 10px 0; padding: 8px; width: 200px; }
+        #status { margin-top: 20px; padding: 10px; background: #f8f9fa; border-radius: 5px; }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-gray-900 via-blue-900 to-gray-800 text-gray-100 font-sans">
-  <div class="max-w-3xl mx-auto p-6">
-    <header class="mb-6 text-center">
-      <h1 class="text-3xl font-bold mb-2">MZ TECH STORE — Checkout</h1>
-      <p class="text-gray-300">Produto: <strong>Produto Personalizado</strong> — Preço: <span id="product-price">400 MZN</span></p>
-      <img src="/assets/product.jpg" alt="Produto" class="mx-auto mt-4 rounded-lg shadow-lg w-full max-w-sm">
-    </header>
+<body>
+    <h1>Checkout - Compra Segura</h1>
+    
+    <div class="product">
+        <h2>Produto Personalizado</h2>
+        <p>Descrição: Seu produto customizado incrível! (Edite esta seção com detalhes reais.)</p>
+        <div class="price">Preço: 1000 MZN</div>
+    </div>
+    
+    <!-- Botão para Checkout Completo (Cartão ou M-Pesa via redirecionamento) -->
+    <button onclick="createPayment()">Comprar Agora (Cartão Visa/MC ou M-Pesa)</button>
+    
+    <!-- Botão Opcional para M-Pesa Direto (requer número de telefone) -->
+    <label for="mpesa-phone">Número M-Pesa (ex: 841234567):</label>
+    <input type="text" id="mpesa-phone" placeholder="Seu número M-Pesa">
+    <button onclick="createMpesaPayment()">Pagar via M-Pesa Direto</button>
+    
+    <div id="status"></div>
 
-    <!-- Vendorapay Hosted Fields -->
-    <section class="bg-gray-800 p-6 rounded-xl shadow-lg mb-6">
-      <h2 class="text-xl font-semibold mb-3 text-purple-400">💳 Pagar com Cartão (Vendorapay)</h2>
-      <p class="text-sm text-gray-400 mb-3">Dados do cartão nunca tocam seu servidor — Hosted Fields + tokenização.</p>
+    <script>
+        const API_KEY = '5dkxbk7i1eyagmzxkydwr5uzj6w4inpgqhhc4d08ichuz6o8914hovr0x5jn'; // Sua chave API
+        const WEBHOOK_SECRET = 'ix6iv8ypxhcsm2g3zppce97w0j4m6jaxi4bg8wbgotdwnt0620jyb3thixwpdewohpo1qt3ng8nd317hmjtnrjcnwumeq66kilb56hpcrp13brg8ci32zq6r'; // Para validar webhooks no backend
+        const AMOUNT = 1000; // Preço em centavos (1000 = 10.00 MZN? Ajuste conforme docs)
+        const CONTEXT = 'Pagamento do Produto Personalizado';
+        const CALLBACK_URL = 'https://seusite.com/webhook'; // Substitua pela sua URL de webhook
+        const RETURN_URL = 'https://seusite.com/obrigado'; // URL após pagamento
+        const API_BASE = 'https://vendorapay.com/api';
 
-      <div id="vendorapay-form" class="space-y-3">
-        <div id="card-number-container" class="p-3 bg-gray-700 rounded-lg"></div>
-        <div class="flex gap-3">
-          <div id="card-expiry-container" class="flex-1 p-3 bg-gray-700 rounded-lg"></div>
-          <div id="card-cvv-container" class="w-28 p-3 bg-gray-700 rounded-lg"></div>
-        </div>
+        async function createPayment() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = 'Processando...';
 
-        <input id="customer-name" type="text" class="w-full p-3 rounded-lg" placeholder="Nome do titular" />
+            try {
+                const response = await fetch(`${API_BASE}/payment/create`, {
+                    method: 'POST',
+                    headers: {
+                        'apiKey': API_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        amount: AMOUNT,
+                        context: CONTEXT,
+                        callbackUrl: CALLBACK_URL,
+                        returnUrl: RETURN_URL,
+                        currency: 'MZN',
+                        enviroment: 'prod' // Mude para 'dev' em testes
+                    })
+                });
 
-        <button id="vendorapay-submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-lg font-bold transition-all">
-          Pagar Agora — 400 MZN
-        </button>
-      </div>
+                const data = await response.json();
+                if (data.success) {
+                    statusDiv.innerHTML = 'Redirecionando para checkout...';
+                    window.location.href = data.redirectUrl; // Redireciona para escolha de método (cartão ou M-Pesa)
+                } else {
+                    statusDiv.innerHTML = `Erro: ${data.error}`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `Erro de conexão: ${error.message}`;
+            }
+        }
 
-      <p id="vendorapay-status" class="mt-2 text-sm text-green-400"></p>
-    </section>
+        async function createMpesaPayment() {
+            const phone = document.getElementById('mpesa-phone').value;
+            if (!phone) {
+                alert('Insira o número M-Pesa!');
+                return;
+            }
 
-    <!-- PayPal -->
-    <section class="bg-gray-800 p-6 rounded-xl shadow-lg mb-6">
-      <h2 class="text-xl font-semibold mb-3 text-blue-400">💰 Pagar com PayPal</h2>
-      <div id="paypal-button-container"></div>
-    </section>
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = 'Iniciando pagamento M-Pesa...';
 
-    <!-- M-Pesa -->
-    <section class="bg-gray-800 p-6 rounded-xl shadow-lg mb-6">
-      <h2 class="text-xl font-semibold mb-3 text-green-400">📱 Pagar com M-Pesa</h2>
-      <div class="flex gap-3">
-        <input id="mpesa-phone" placeholder="Número M-Pesa (ex: 25884xxxxxxx)" class="flex-1 p-3 rounded-lg border-none focus:ring-2 focus:ring-green-500"/>
-        <button id="mpesa-btn" class="bg-green-600 hover:bg-green-700 p-3 rounded-lg text-white font-bold transition-all">Pagar</button>
-      </div>
-      <p id="mpesa-status" class="mt-2 text-sm text-green-300"></p>
-    </section>
+            // Placeholder para email e WhatsApp - edite conforme necessário
+            const userEmail = 'cliente@exemplo.com'; // Colete do form
+            const userWhatsApp = '841234567'; // Colete do form
 
-    <footer class="text-xs text-gray-400 mt-6 text-center">
-      ✅ Seguro: Hosted Fields + tokenização — nenhum dado sensível no servidor.
-    </footer>
-  </div>
+            try {
+                const response = await fetch(`${API_BASE}/payment/mobile`, {
+                    method: 'POST',
+                    headers: {
+                        'apiKey': API_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        method: 'mpesa',
+                        amount: AMOUNT,
+                        context: CONTEXT,
+                        useremail: userEmail,
+                        userwhatsApp: userWhatsApp,
+                        phone: phone
+                    })
+                });
 
-<script>
-const PRICE = 400;
+                const data = await response.json();
+                if (data.success) {
+                    statusDiv.innerHTML = 'Pagamento M-Pesa iniciado! Verifique seu telefone para confirmação.';
+                    // Aqui você pode redirecionar ou mostrar instruções
+                } else {
+                    statusDiv.innerHTML = `Erro: ${data.error}`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `Erro de conexão: ${error.message}`;
+            }
+        }
 
-// --- Vendorapay Hosted Fields setup ---
-// Observação: o SDK abaixo é um exemplo; ajuste conforme SDK real da Vendorapay.
-const vendorapay = new Vendorapay.HostedFields({
-  // NÃO coloque API key pública aqui se Provider exigir servidor para inicializar o JS;
-  // ajuste conforme a documentação do SDK do Vendorapay.
-  container: 'vendorapay-form',
-  fields: {
-    number: { selector: '#card-number-container', placeholder: 'Número do cartão' },
-    expiry: { selector: '#card-expiry-container', placeholder: 'MM/AA' },
-    cvv: { selector: '#card-cvv-container', placeholder: 'CVV' }
-  },
-  style: {
-    base: { color: '#fff', fontSize: '16px', '::placeholder': { color: '#aaa' } },
-    focus: { color: '#fff', borderColor: '#8b5cf6' }
-  }
-});
-
-// When user clicks pay: create token via Hosted Fields and send token to server
-document.getElementById('vendorapay-submit').addEventListener('click', async () => {
-  document.getElementById('vendorapay-status').textContent = 'Processando...';
-  try {
-    // createToken() is provided by Vendorapay Hosted Fields SDK; returns a token (nonce)
-    const tokenResult = await vendorapay.createToken({
-      cardholderName: document.getElementById('customer-name').value || 'Cliente'
-    });
-
-    if (!tokenResult || !tokenResult.token) throw new Error('Falha ao gerar token');
-
-    // send token to your server to create a charge (server uses VENDORAPAY_API_KEY)
-    const res = await fetch('/api/vendorapay/charge', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        token: tokenResult.token,
-        amount: PRICE,
-        currency: 'MZN',
-        description: 'Compra MZ TECH STORE'
-      })
-    });
-
-    const j = await res.json();
-    if (res.ok && j.success) {
-      document.getElementById('vendorapay-status').textContent = '✅ Pagamento concluído: ' + (j.transactionId || '');
-    } else {
-      document.getElementById('vendorapay-status').textContent = '❌ Falha: ' + (j.message || JSON.stringify(j));
-    }
-  } catch (err) {
-    document.getElementById('vendorapay-status').textContent = '❌ Erro: ' + err.message;
-  }
-});
-
-// --- PayPal Buttons (calls server to create order) ---
-paypal.Buttons({
-  createOrder: () => fetch('/api/paypal/create-order', { method:'POST' }).then(r => r.json()).then(data => data.id),
-  onApprove: (data) => fetch('/api/paypal/capture/' + data.orderID, { method:'POST' }).then(r => r.json()).then(()=> alert('Pagamento PayPal concluído!'))
-}).render('#paypal-button-container');
-
-// --- M-Pesa ---
-document.getElementById('mpesa-btn').addEventListener('click', async () => {
-  const phone = document.getElementById('mpesa-phone').value.trim();
-  if (!phone) return alert('Insira número M-Pesa');
-  document.getElementById('mpesa-status').textContent = 'Solicitando STK Push...';
-  const res = await fetch('/api/mpesa/stkpush', {
-    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ phone, amount: PRICE })
-  });
-  const j = await res.json();
-  document.getElementById('mpesa-status').textContent = j.message || JSON.stringify(j);
-});
-</script>
+        // Função para verificar status (chame após redirecionamento ou via polling)
+        async function checkStatus(txnId) {
+            const response = await fetch(`${API_BASE}/payment/status`, {
+                method: 'POST',
+                headers: {
+                    'apiKey': API_KEY,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: txnId })
+            });
+            const data = await response.json();
+            console.log('Status:', data); // Use para atualizar UI ou banco de dados
+            return data;
+        }
+    </script>
 </body>
 </html>
