@@ -182,15 +182,15 @@
                 </div>
                 <div class="form-group">
                     <label for="cardNumber">Número do Cartão</label>
-                    <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                    <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
                 </div>
                 <div class="form-group">
                     <label for="expiry">Data de Validade (MM/AA)</label>
-                    <input type="text" id="expiry" name="expiry" placeholder="MM/AA" maxlength="5" required>
+                    <input type="text" id="expiry" name="expiry" placeholder="MM/AA" maxlength="5">
                 </div>
                 <div class="form-group">
                     <label for="cvv">CVV</label>
-                    <input type="password" id="cvv" name="cvv" placeholder="123" maxlength="3" required>
+                    <input type="password" id="cvv" name="cvv" placeholder="123" maxlength="3">
                 </div>
             </div>
             
@@ -201,7 +201,7 @@
                 </div>
                 <div class="form-group">
                     <label for="phone">Número de Telefone M-Pesa (+258)</label>
-                    <input type="tel" id="phone" name="phone" placeholder="+258 XX XXX XXX" maxlength="14" required>
+                    <input type="tel" id="phone" name="phone" placeholder="+258 XX XXX XXX" maxlength="14">
                 </div>
                 <p style="font-size: 14px; color: #666;">Confirme o pagamento no seu celular via M-Pesa.</p>
             </div>
@@ -239,12 +239,16 @@
             radio.addEventListener('change', function() {
                 document.querySelector('.card-fields').classList.toggle('active', this.value === 'card');
                 document.querySelector('.mpesa-fields').classList.toggle('active', this.value === 'mpesa');
-                // Reset required fields
+                // Ajustar campos obrigatórios
                 if (this.value === 'card') {
                     document.getElementById('cardNumber').required = true;
+                    document.getElementById('expiry').required = true;
+                    document.getElementById('cvv').required = true;
                     document.getElementById('phone').required = false;
                 } else {
                     document.getElementById('cardNumber').required = false;
+                    document.getElementById('expiry').required = false;
+                    document.getElementById('cvv').required = false;
                     document.getElementById('phone').required = true;
                 }
             });
@@ -262,9 +266,12 @@
             let paymentData = {
                 amount: 300,
                 currency: 'MZN',
-                name: name,
-                description: 'Compra de As 50 melhores receitas de cozinha',
-                method: paymentMethod
+                context: 'Pagamento do ebook das receitas',
+                callbackUrl: 'http://localhost:3000/webhook/payments',
+                returnUrl: 'https://seusite.com/obrigado',
+                enviroment: 'prod',
+                method: paymentMethod,
+                customer_name: name
             };
 
             if (paymentMethod === 'card') {
@@ -276,7 +283,7 @@
                     return;
                 }
                 paymentData.card = { number: cardNumber, expiry, cvv };
-            } else {
+            } else if (paymentMethod === 'mpesa') {
                 const phone = document.getElementById('phone').value;
                 if (!phone || !phone.startsWith('+258')) {
                     errorMessage.textContent = 'Por favor, insira um número de telefone M-Pesa válido (+258).';
@@ -287,7 +294,6 @@
             }
 
             errorMessage.textContent = '';
-            successMessage.textContent = '';
 
             try {
                 const response = await fetch('http://localhost:3000/api/payment', {
@@ -302,13 +308,16 @@
                     if (paymentMethod === 'mpesa') {
                         alert('Prompt enviado para o seu celular! Confirme o pagamento no M-Pesa.');
                     } else {
-                        alert('Pagamento processado com sucesso! ID da transação: ' + result.transactionId);
+                        alert('Pagamento processado com sucesso! Redirecionando...');
+                        window.location.href = paymentData.returnUrl; // Redireciona para a página de agradecimento
                     }
                 } else {
                     errorMessage.textContent = result.error || 'Erro ao processar o pagamento.';
+                    successMessage.textContent = '';
                 }
             } catch (error) {
                 errorMessage.textContent = 'Erro de conexão com o servidor. Tente novamente.';
+                successMessage.textContent = '';
                 console.error(error);
             }
         });
