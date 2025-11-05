@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MZ TECH STORE - Roleta</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body { background:#0f111a; color:#fff; font-family:'Inter',sans-serif; }
+h1 { color:#00f0ff; text-align:center; text-shadow:0 0 10px #00f0ff; }
+#wheel { width:300px; height:300px; border-radius:50%; border:5px solid #00f0ff; position:relative; margin:20px auto; display:flex; align-items:center; justify-content:center; }
+#pointer { position:absolute; top:-20px; left:50%; transform:translateX(-50%); width:0; height:0; border-left:15px solid transparent; border-right:15px solid transparent; border-bottom:30px solid #ff0055; }
+</style>
+</head>
+<body class="flex flex-col items-center p-4">
+
+<h1>💻 MZ TECH STORE - Roleta</h1>
+
+<div class="w-full max-w-lg bg-gray-800 p-4 rounded-xl mb-4">
+  <p>Saldo USD: <span id="saldo-usd">0.00</span>$</p>
+  <p>Saldo MZN: <span id="saldo-mzn">0.00</span>MZN</p>
+</div>
+
+<div id="wheel">
+  <div id="pointer"></div>
+  <div id="wheel-number" class="text-white text-4xl font-bold">0</div>
+</div>
+
+<button onclick="spin()" class="w-full max-w-lg bg-purple-600 p-3 rounded font-bold mt-4">Girar Roleta</button>
+
+<script>
+const TAXA_CAMBIO=63.5;
+function updateBalance(saldoUSD){document.getElementById('saldo-usd').innerText=saldoUSD.toFixed(2);document.getElementById('saldo-mzn').innerText=(saldoUSD*TAXA_CAMBIO).toFixed(2);}
+function adicionarGanho(valor){updateBalance(parseFloat(document.getElementById('saldo-usd').innerText)+valor);}
+function spin(){const escolha=Math.floor(Math.random()*6)+1;const resultado=Math.floor(Math.random()*6)+1;document.getElementById('wheel-number').innerText=resultado;const ganho=(escolha===resultado)?3:0;adicionarGanho(ganho);}
+updateBalance(0);
+</script>
+
+</body>
+</html>
