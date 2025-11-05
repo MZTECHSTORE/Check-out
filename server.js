@@ -1,74 +1,73 @@
 // server.js
 const express = require('express');
-const path = require('path');
 const bodyParser = require('body-parser');
-const cors = require('cors');
-
+const fetch = require('node-fetch');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
-// Middleware
-app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public')); // Para servir o HTML e assets
 
-// Simulação de usuários e saldos
+// Simulação de banco de dados
 let users = {
-  'user1': { saldoUSD: 10.0, historico: [] }
+  'user1': {
+    saldoUSD: 0,
+    historico: []
+  }
 };
 
-// Obter saldo do usuário
+// Vendorapay
+const VENDORAPAY_API_URL = 'https://vendorapay.com/api';
+const VENDORAPAY_API_KEY = '5dkxbk7i1eyagmzxkydwr5uzj6w4inpgqhhc4d08ichuz6o8914hovr0x5jn';
+
+// --- Rotas ---
+
+// Saldo do usuário
 app.get('/api/saldo/:user', (req, res) => {
-  const user = req.params.user;
-  if (!users[user]) return res.status(404).json({ error: 'Usuário não encontrado' });
-  res.json({ saldoUSD: users[user].saldoUSD, historico: users[user].historico });
+  const user = users[req.params.user];
+  if(!user) return res.status(404).json({error:'Usuário não encontrado'});
+  res.json({ saldoUSD: user.saldoUSD, historico: user.historico });
 });
 
-// Registrar ganho de mini-game
+// Registrar ganho
 app.post('/api/ganho', (req, res) => {
   const { user, valor, origem } = req.body;
-  if (!user || !valor || !origem) return res.status(400).json({ error: 'Parâmetros inválidos' });
-  
-  if (!users[user]) users[user] = { saldoUSD: 0, historico: [] };
-  
-  users[user].saldoUSD += valor;
-  users[user].historico.unshift(`${origem}: +$${valor.toFixed(2)} USD`);
-  
-  res.json({ success: true, saldoAtual: users[user].saldoUSD });
+  if(!users[user]) return res.status(404).json({error:'Usuário não encontrado'});
+  users[user].saldoUSD += parseFloat(valor);
+  users[user].historico.unshift(`${origem}: +$${parseFloat(valor).toFixed(2)}`);
+  res.json({success:true});
 });
 
-// Processar saque
-app.post('/api/sacar', (req, res) => {
-  const { user, valor, metodo } = req.body;
-  if (!user || !valor || !metodo) return res.status(400).json({ error: 'Parâmetros inválidos' });
-  if (!users[user] || users[user].saldoUSD < valor) return res.status(400).json({ error: 'Saldo insuficiente' });
-
-  users[user].saldoUSD -= valor;
-  users[user].historico.unshift(`Saque: -$${valor.toFixed(2)} USD via ${metodo}`);
-
-  // Simulação de chamada real à API PayPal / Vendorapay
-  // Aqui você integraria usando a API Key fornecida
-
-  res.json({
-    success: true,
-    saldoAtual: users[user].saldoUSD,
-    message: `Saque de $${valor.toFixed(2)} via ${metodo} realizado com sucesso!`
-  });
+// Criar pagamento Vendorapay
+app.post('/api/vendorapay/create', async (req,res)=>{
+  const { user, amount, currency } = req.body;
+  if(!users[user]) return res.status(404).json({error:'Usuário não encontrado'});
+  try{
+    const response = await fetch(`${VENDORAPAY_API_URL}/create`,{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':`Bearer ${VENDORAPAY_API_KEY}`
+      },
+      body: JSON.stringify({amount,currency})
+    });
+    const data = await response.json();
+    res.json({success:true, paymentUrl:data.paymentUrl || 'https://vendorapay.com/mockpay'});
+  }catch(err){ res.json({success:false,error:err.message,raw:err}); }
 });
 
-// Registrar ganho contínuo (Time To Earn)
-app.post('/api/time-to-earn', (req, res) => {
-  const { user, valor } = req.body;
-  if (!user || !valor) return res.status(400).json({ error: 'Parâmetros inválidos' });
-  if (!users[user]) users[user] = { saldoUSD: 0, historico: [] };
-
-  users[user].saldoUSD += valor;
-  users[user].historico.unshift(`Time To Earn: +$${valor.toFixed(2)} USD`);
-  
-  res.json({ success: true, saldoAtual: users[user].saldoUSD });
+// Saque Vendorapay
+app.post('/api/vendorapay/withdraw', async (req,res)=>{
+  const { user, amount, currency } = req.body;
+  if(!users[user]) return res.status(404).json({error:'Usuário não encontrado'});
+  if(users[user].saldoUSD<amount) return res.json({success:false,error:'Saldo insuficiente'});
+  users[user].saldoUSD -= parseFloat(amount);
+  users[user].historico.unshift(`Saque: -$${parseFloat(amount).toFixed(2)}`);
+  // Aqui você chamaria a API real da Vendorapay
+  res.json({success:true});
 });
 
-// Iniciar servidor
-app.listen(PORT, () => {
+// --- Start server ---
+app.listen(PORT, ()=>{
   console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
