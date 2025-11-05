@@ -113,9 +113,8 @@ document.getElementById('historico').innerHTML=historico.map(item=>`<li>${item}<
 document.getElementById('timeEarn').innerText=`$${(saldoUSD).toFixed(2)} USD`;
 }
 
-// Time To Earn
 setInterval(()=>{
-const now=Date.now();
+const now=Date
 const minutosPassados=(now-lastTime)/60000;
 if(minutosPassados>=1){
 const ganho=minutosPassados*0.02;
