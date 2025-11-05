@@ -1,326 +1,155 @@
-<!DOCTYPE html>
-<html lang="pt">
+<!DOCTYPE html><html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>As 50 melhores receitas de cozinha - VendoraPay</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
-            margin: 0;
-            padding: 20px;
-            line-height: 1.6;
-            color: #333;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .loading {
-            text-align: center;
-            color: #666;
-            font-style: italic;
-        }
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-        .category {
-            text-align: center;
-            color: #7f8c8d;
-            margin-bottom: 20px;
-        }
-        .description {
-            margin-bottom: 20px;
-            font-size: 16px;
-        }
-        .price {
-            font-size: 24px;
-            font-weight: bold;
-            color: #27ae60;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .seller {
-            text-align: center;
-            color: #95a5a6;
-            margin-bottom: 30px;
-        }
-        h2 {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #bdc3c7;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        .payment-method {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .payment-method input[type="radio"] {
-            margin-right: 5px;
-        }
-        .card-fields, .mpesa-fields {
-            display: none;
-        }
-        .card-fields.active, .mpesa-fields.active {
-            display: block;
-        }
-        .card-logos {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 10px;
-        }
-        .card-logos img {
-            width: 50px;
-            height: auto;
-        }
-        .mpesa-logo {
-            text-align: center;
-            margin: 10px 0;
-        }
-        .mpesa-logo img {
-            width: 100px;
-        }
-        .buy-button {
-            width: 100%;
-            padding: 15px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 18px;
-            cursor: pointer;
-            margin-bottom: 20px;
-        }
-        .buy-button:hover {
-            background-color: #2980b9;
-        }
-        h3 {
-            color: #2c3e50;
-            margin-top: 30px;
-        }
-        ul {
-            list-style-type: disc;
-            padding-left: 20px;
-        }
-        .divider {
-            border-top: 1px solid #ecf0f1;
-            margin: 30px 0;
-        }
-        .error {
-            color: red;
-            text-align: center;
-            margin-top: 10px;
-        }
-        .success {
-            color: green;
-            text-align: center;
-            margin-top: 10px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MZ TECH STORE — Ganhe Dinheiro Online</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<style>
+body { background: radial-gradient(circle at top left, #0f002b, #1e003a 70%); color: white; font-family: 'Poppins', sans-serif; }
+.glass { background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+.neon-text { text-shadow: 0 0 8px #9f7aea, 0 0 12px #3b82f6; }
+button { transition: transform 0.2s; }
+button:hover { transform: scale(1.05); }
+#aviador-bar { height: 30px; background: linear-gradient(to right, #9f7aea, #3b82f6); width: 0%; border-radius: 8px; }
+#roleta { width: 150px; height: 150px; border-radius: 50%; border: 5px solid #9f7aea; display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; margin: 0 auto; }
+#roleta-inner { width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(red 0 50%, black 50% 100%); transition: transform 3s cubic-bezier(0.25, 0.1, 0.25, 1); }
+#roleta-pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 20px solid yellow; }
+.raspadinha { width: 120px; height: 120px; background: gray; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-weight: bold; cursor: pointer; user-select: none; margin: 0 auto; }
+</style>
 </head>
-<body>
-    <div class="container">
-        <div class="loading">A carregar...</div>
-        
-        <img src="https://via.placeholder.com/200x50/3498db/white?text=VendoraPay+Logo" alt="VendoraPay Logo" style="display: block; margin: 0 auto 20px;">
-        
-        <h1>As 50 melhores receitas de cozinha</h1>
-        <div class="category">ebook</div>
-        
-        <p class="description">São mais de 10 mil pratos, ingredientes e bebidas que elucidam de maneira bem intuitiva o que se pode provar em grandes metrópoles, vilarejos, ...</p>
-        
-        <div class="price">300 MZN</div>
-        <div class="seller">Vendido por: MZ TECH STORE</div>
-        
-        <h2>Comprar Produto</h2>
-        
-        <form id="checkoutForm">
-            <div class="form-group">
-                <label for="name">Nome Completo</label>
-                <input type="text" id="name" name="name" placeholder="Digite seu nome completo" required>
-            </div>
-            
-            <div class="form-group">
-                <label>Método de Pagamento</label>
-                <div class="payment-method">
-                    <label><input type="radio" name="paymentMethod" value="card" checked> Cartão (Visa/Mastercard)</label>
-                    <label><input type="radio" name="paymentMethod" value="mpesa"> M-Pesa</label>
-                </div>
-            </div>
-            
-            <!-- Campos para Cartão -->
-            <div class="card-fields active">
-                <div class="form-group">
-                    <label>Tipo de Cartão</label>
-                    <div class="card-logos">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="cardNumber">Número do Cartão</label>
-                    <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
-                </div>
-                <div class="form-group">
-                    <label for="expiry">Data de Validade (MM/AA)</label>
-                    <input type="text" id="expiry" name="expiry" placeholder="MM/AA" maxlength="5">
-                </div>
-                <div class="form-group">
-                    <label for="cvv">CVV</label>
-                    <input type="password" id="cvv" name="cvv" placeholder="123" maxlength="3">
-                </div>
-            </div>
-            
-            <!-- Campos para M-Pesa -->
-            <div class="mpesa-fields">
-                <div class="form-group mpesa-logo">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/47/M-Pesa_Logo.png" alt="M-Pesa Logo">
-                </div>
-                <div class="form-group">
-                    <label for="phone">Número de Telefone M-Pesa (+258)</label>
-                    <input type="tel" id="phone" name="phone" placeholder="+258 XX XXX XXX" maxlength="14">
-                </div>
-                <p style="font-size: 14px; color: #666;">Confirme o pagamento no seu celular via M-Pesa.</p>
-            </div>
-            
-            <button type="submit" class="buy-button">Comprar Produto</button>
-            <div class="error" id="errorMessage"></div>
-            <div class="success" id="successMessage"></div>
-        </form>
-        
-        <div class="divider"></div>
-        
-        <h3>Pagamento Seguro</h3>
-        <ul>
-            <li>Dados criptografados</li>
-            <li>Suporte 24/7</li>
-        </ul>
-    </div>
-    
-    <script>
-        // Formatação do número do cartão
-        document.getElementById('cardNumber').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\s/g, '').replace(/(\d{4})(?=\d)/g, '$1 ');
-            e.target.value = value;
-        });
+<body class="overflow-x-hidden">
+<header class="flex justify-between items-center p-4 bg-black bg-opacity-40 sticky top-0 z-50">
+<h1 class="text-2xl font-bold text-blue-400">MZ TECH STORE</h1>
+<nav class="space-x-4">
+<a href="#home" class="hover:text-purple-400">Início</a>
+<a href="#tarefas" class="hover:text-purple-400">Tarefas</a>
+<a href="#painel" class="hover:text-purple-400">Painel</a>
+<a href="#jogos" class="hover:text-purple-400">Jogos</a>
+</nav>
+</header><section id="home" class="text-center py-20" data-aos="fade-up">
+<h2 class="text-4xl neon-text mb-4">Ganhe dinheiro online com MZ TECH STORE</h2>
+<p class="text-lg text-gray-300 mb-6">Receba por assistir vídeos, clicar em anúncios, jogar e muito mais!</p>
+<a href="#tarefas" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full hover:opacity-90">Começar Agora</a>
+</section><section id="tarefas" class="p-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6" data-aos="fade-up">
+<div class="glass p-6 rounded-2xl text-center">
+<h3 class="text-xl font-semibold mb-2 text-purple-400">📺 Assistir Vídeos</h3>
+<p class="text-gray-300 mb-4">Ganhe até $0.50 por vídeo assistido.</p>
+<button onclick="ganhar('Vídeo', 0.05)" class="bg-purple-600 px-4 py-2 rounded-full">Assistir</button>
+</div>
+<div class="glass p-6 rounded-2xl text-center">
+<h3 class="text-xl font-semibold mb-2 text-blue-400">🖱️ Click2</h3>
+<p class="text-gray-300 mb-4">Ganhe por clicar em links e anúncios.</p>
+<button onclick="ganhar('Click', 0.02)" class="bg-blue-600 px-4 py-2 rounded-full">Clicar</button>
+</div>
+<div class="glass p-6 rounded-2xl text-center">
+<h3 class="text-xl font-semibold mb-2 text-pink-400">🎮 Joguinhos</h3>
+<p class="text-gray-300 mb-4">Divirta-se e ganhe recompensas reais.</p>
+<button onclick="ganhar('Jogo', 0.03)" class="bg-pink-600 px-4 py-2 rounded-full">Jogar</button>
+</div>
+</section><section id="painel" class="p-10 bg-gradient-to-b from-[#0f002b] to-[#1e003a]" data-aos="fade-up">
+<h2 class="text-3xl font-bold neon-text text-center mb-8">💼 Painel do Usuário</h2>
+<div class="max-w-4xl mx-auto grid md:grid-cols-2 gap-6">
+<div class="glass p-6 rounded-2xl">
+<h3 class="text-xl font-semibold mb-3">Saldo Atual</h3>
+<p id="saldo" class="text-3xl font-bold text-blue-400">$0.00 USD (≈ 0.00 MZN)</p>
+<button id="sacarBtn" class="mt-4 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full w-full">💵 Sacar via PayPal / Vendorapay</button>
+</div>
+<div class="glass p-6 rounded-2xl">
+<h3 class="text-xl font-semibold mb-3">Histórico de Ganhos</h3>
+<ul id="historico" class="text-gray-300 text-sm space-y-1"></ul>
+</div>
+</div>
+<div class="glass mt-10 p-6 rounded-2xl">
+<h3 class="text-xl font-semibold mb-4">📊 Gráfico de Ganhos Diários</h3>
+<canvas id="graficoGanhos" height="120"></canvas>
+</div>
+</section><section id="jogos" class="p-10" data-aos="fade-up">
+<h2 class="text-3xl font-bold neon-text text-center mb-8">🎲 Mini-Games Animados</h2>
+<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="glass p-6 rounded-2xl text-center">
+<h3 class="text-xl font-semibold mb-2 text-yellow-400">⏱️ Time To Earn</h3>
+<p class="text-gray-300 mb-4">Ganhe dinheiro automaticamente por minuto.</p>
+<p id="timeEarn" class="font-bold text-lg">0.00 USD</p>
+</div>
+<div class="glass p-6 rounded-2xl text-center">
+<h3 class="text-xl font-semibold mb-2 text-red-400">✈️ Aviador</h3>
+<div class="w-full bg-gray-700 rounded-lg h-8 mb-2"><div id="aviador-bar"></div></div>
+<button id="aviador-btn" class="bg-red-600 px-4 py-2 rounded-full">Jogar Aviador</button>
+</div>
+<div class="glass p-6 rounded-2xl text-center">
+<h3 class="text-xl font-semibold mb-2 text-green-400">🎫 Raspadinhas / Roleta</h3>
+<div class="raspadinha" onclick="jogoRaspadinha()">Clique para raspar</div>
+<div id="roleta">
+<div id="roleta-inner"></div>
+<div id="roleta-pointer"></div>
+</div>
+<button onclick="jogoRoleta()" class="bg-green-700 px-4 py-2 rounded-full mt-2">Girar Roleta</button>
+</div>
+</div>
+</section><a href="https://wa.me/258840000000" target="_blank" class="fixed bottom-5 right-5 bg-green-500 p-4 rounded-full shadow-lg hover:scale-110 transition-transform">
+<img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp" class="w-6 h-6">
+</a><script>
+AOS.init();
+const taxaCambio=64;
+let saldoUSD=parseFloat(localStorage.getItem('saldoUSD'))||0;
+let historico=JSON.parse(localStorage.getItem('historico'))||[];
+let lastTime=parseInt(localStorage.getItem('lastTime'))||Date.now();
 
-        // Validação e formatação do telefone M-Pesa
-        document.getElementById('phone').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '').replace(/(\+258)?(\d{0,9})/, '+258 $2');
-            if (value.length > 14) value = value.slice(0, 14);
-            e.target.value = value;
-        });
+function atualizarSaldo(valor,origem){
+saldoUSD+=valor;
+historico.unshift(`${origem}: +$${valor.toFixed(2)} USD`);
+localStorage.setItem('saldoUSD',saldoUSD);
+localStorage.setItem('historico',JSON.stringify(historico));
+atualizarDisplay();
+}
 
-        // Mostrar/esconder campos baseado no método de pagamento
-        document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                document.querySelector('.card-fields').classList.toggle('active', this.value === 'card');
-                document.querySelector('.mpesa-fields').classList.toggle('active', this.value === 'mpesa');
-                // Ajustar campos obrigatórios
-                if (this.value === 'card') {
-                    document.getElementById('cardNumber').required = true;
-                    document.getElementById('expiry').required = true;
-                    document.getElementById('cvv').required = true;
-                    document.getElementById('phone').required = false;
-                } else {
-                    document.getElementById('cardNumber').required = false;
-                    document.getElementById('expiry').required = false;
-                    document.getElementById('cvv').required = false;
-                    document.getElementById('phone').required = true;
-                }
-            });
-        });
+function atualizarDisplay(){
+const saldoMZN=(saldoUSD*taxaCambio).toFixed(2);
+document.getElementById('saldo').innerText=`$${saldoUSD.toFixed(2)} USD (≈ ${saldoMZN} MZN)`;
+document.getElementById('historico').innerHTML=historico.map(item=>`<li>${item}</li>`).join('');
+document.getElementById('timeEarn').innerText=`$${(saldoUSD).toFixed(2)} USD`;
+}
 
-        // Submissão do formulário para o backend
-        document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('name').value;
-            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-            const errorMessage = document.getElementById('errorMessage');
-            const successMessage = document.getElementById('successMessage');
-            
-            let paymentData = {
-                amount: 300,
-                currency: 'MZN',
-                context: 'Pagamento do ebook das receitas',
-                callbackUrl: 'http://localhost:3000/webhook/payments',
-                returnUrl: 'https://seusite.com/obrigado',
-                enviroment: 'prod',
-                method: paymentMethod,
-                customer_name: name
-            };
+// Time To Earn
+setInterval(()=>{
+const now=Date.now();
+const minutosPassados=(now-lastTime)/60000;
+if(minutosPassados>=1){
+const ganho=minutosPassados*0.02;
+saldoUSD+=ganho;
+historico.unshift(`Time To Earn: +$${ganho.toFixed(2)} USD`);
+lastTime=now;
+localStorage.setItem('saldoUSD',saldoUSD);
+localStorage.setItem('historico',JSON.stringify(historico));
+localStorage.setItem('lastTime',lastTime);
+atualizarDisplay();
+}
+},10000);
 
-            if (paymentMethod === 'card') {
-                const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
-                const expiry = document.getElementById('expiry').value;
-                const cvv = document.getElementById('cvv').value;
-                if (!cardNumber || !expiry || !cvv) {
-                    errorMessage.textContent = 'Por favor, preencha todos os campos do cartão.';
-                    return;
-                }
-                paymentData.card = { number: cardNumber, expiry, cvv };
-            } else if (paymentMethod === 'mpesa') {
-                const phone = document.getElementById('phone').value;
-                if (!phone || !phone.startsWith('+258')) {
-                    errorMessage.textContent = 'Por favor, insira um número de telefone M-Pesa válido (+258).';
-                    return;
-                }
-                paymentData.phone = phone;
-                successMessage.textContent = 'Aguardando confirmação no seu celular via M-Pesa...';
-            }
+// Mini-games simulados
+function ganhar(origem,valor){atualizarSaldo(valor,origem);}
 
-            errorMessage.textContent = '';
-
-            try {
-                const response = await fetch('http://localhost:3000/api/payment', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(paymentData)
-                });
-
-                const result = await response.json();
-                
-                if (response.ok) {
-                    if (paymentMethod === 'mpesa') {
-                        alert('Prompt enviado para o seu celular! Confirme o pagamento no M-Pesa.');
-                    } else {
-                        alert('Pagamento processado com sucesso! Redirecionando...');
-                        window.location.href = paymentData.returnUrl; // Redireciona para a página de agradecimento
-                    }
-                } else {
-                    errorMessage.textContent = result.error || 'Erro ao processar o pagamento.';
-                    successMessage.textContent = '';
-                }
-            } catch (error) {
-                errorMessage.textContent = 'Erro de conexão com o servidor. Tente novamente.';
-                successMessage.textContent = '';
-                console.error(error);
-            }
-        });
-    </script>
-</body>
-</html>
+// Aviador animado
+let aviadorInterval, aviadorMultiplicador=1;
+const aviadorBar=document.getElementById('aviador-bar');
+document.getElementById('aviador-btn').addEventListener('click',()=>{
+clearInterval(aviadorInterval);
+aviadorMultiplicador=1;
+aviadorBar.style.width='0%';
+const aposta=0.5;
+const crash=Math.random()*5+1; // multiplicador aleatório
+aviadorInterval=setInterval(()=>{
+aviadorMultiplicador+=0.1;
+aviadorBar.style.width=`${Math.min(aviadorMultiplicador*20,100)}%`;
+if(aviadorMultiplicador>=crash){
+clearInterval(aviadorInterval);
+aviadorBar.style.width='0%';
+alert('O avião caiu! Você perdeu a aposta.');
+}
+},200);
+document.getElementById('aviador-btn').onclick=function(){
+clearInterval(aviadorInterval);
+const ganho=aposta*aviador
