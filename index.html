@@ -1,419 +1,205 @@
-<!doctype html>
-<html lang="pt-BR">
+<!DOCTYPE html>
+<html lang="pt">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MZ TECH STORE — Ganhe Dinheiro (Demo)</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MZ TECH STORE - Plataforma de Ganhos</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body { background: #0f111a; font-family: 'Inter', sans-serif; color: #fff; }
+h1, h2 { color: #00f0ff; text-shadow: 0 0 10px #00f0ff; }
+button { transition: all 0.2s ease; }
+button:hover { transform: scale(1.05); }
 
-  <!-- Tailwind + AOS + Chart.js -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+#coin-container { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; }
+@keyframes coin-fall {
+  0% { transform: translateY(-50px) rotate(0deg); opacity:1; }
+  100% { transform: translateY(200px) rotate(360deg); opacity:0; }
+}
+.coin { position:absolute; width:20px; height:20px; background:#00f0ff; border-radius:50%; animation:coin-fall 1s ease-out forwards; box-shadow:0 0 10px #00f0ff; }
 
-  <style>
-    :root{
-      --brand1:#0ea5e9; --brand2:#7c3aed;
-    }
-    body { background: radial-gradient(circle at top left,#070422,#0b0630 70%); color:#E6EEF8; font-family:Inter, system-ui, -apple-system, "Poppins", sans-serif; }
-    .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.04); }
-    .neon { text-shadow: 0 0 10px rgba(124,58,237,0.5), 0 0 18px rgba(14,165,233,0.25); }
-    .btn { transition: transform .12s ease, box-shadow .12s ease; }
-    .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(15,23,42,0.45); }
-    /* Aviador UI */
-    #aviador-bar { height:28px; background: linear-gradient(90deg,var(--brand2),var(--brand1)); width:0%; border-radius:8px; transition: width .08s linear; }
-    #aviador-meter { font-weight:700; }
-    /* Roleta */
-    #roleta { width:170px;height:170px;border-radius:50%;border:6px solid rgba(159,122,234,0.18);position:relative;overflow:hidden;margin:0 auto; }
-    #roleta-inner { width:100%;height:100%;border-radius:50%; background: conic-gradient(#ef4444 0 22.5deg, #111827 22.5deg 45deg, #ef4444 45deg 67.5deg, #111827 67.5deg 90deg, #ef4444 90deg 112.5deg, #111827 112.5deg 135deg, #ef4444 135deg 157.5deg, #111827 157.5deg 180deg, #ef4444 180deg 202.5deg, #111827 202.5deg 225deg, #ef4444 225deg 247.5deg, #111827 247.5deg 270deg, #ef4444 270deg 292.5deg, #111827 292.5deg 315deg, #ef4444 315deg 337.5deg, #111827 337.5deg 360deg); transition: transform 3s cubic-bezier(.2,.9,.2,1); }
-    #roleta-pointer { position:absolute; top:-6px; left:50%; transform:translateX(-50%); width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-bottom:22px solid #FFD43B; filter:drop-shadow(0 4px 8px rgba(0,0,0,.6)); }
-    /* Raspadinha */
-    .raspadinha { width:140px;height:140px;border-radius:10px;background:linear-gradient(180deg,#9CA3FF,#6D28D9);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;cursor:pointer;user-select:none;margin:0 auto; }
-    .scratch-hidden { font-size:1.5rem; opacity:0; transition:opacity .18s ease; }
-    .scratch-show { opacity:1; }
-  </style>
+.card { background:#1a1c2b; padding:20px; border-radius:12px; box-shadow:0 0 15px #00f0ff; margin-bottom:20px; }
+</style>
 </head>
-<body>
-  <header class="flex items-center justify-between p-4 glass">
-    <div class="flex items-center gap-3">
-      <div class="w-12 h-12 rounded-xl" style="background:linear-gradient(135deg,var(--brand1),var(--brand2));display:flex;align-items:center;justify-content:center"><strong style="color:#031026">MZ</strong></div>
-      <div>
-        <h1 class="text-xl font-bold neon">MZ TECH STORE — Demo</h1>
-        <div class="text-xs text-slate-300">Simulação de mini-games pagos — frontend-only</div>
-      </div>
+<body class="flex flex-col items-center p-4">
+
+<h1 class="text-4xl font-bold mb-6 text-center">💻 MZ TECH STORE - Plataforma de Ganhos</h1>
+
+<!-- Saldo -->
+<div class="card w-full max-w-lg relative">
+  <p class="text-xl">Saldo USD: <span id="saldo-usd">0.00</span>$</p>
+  <p class="text-xl">Saldo MZN: <span id="saldo-mzn">0.00</span>MZN</p>
+  <div id="coin-container"></div>
+</div>
+
+<!-- Histórico -->
+<div class="card w-full max-w-lg">
+  <h2 class="text-2xl font-semibold mb-2">Histórico de Ganhos</h2>
+  <ul id="historico" class="list-disc pl-5 max-h-48 overflow-y-auto"></ul>
+</div>
+
+<!-- Depósito / Saque -->
+<div class="card w-full max-w-lg">
+  <h2 class="text-2xl font-semibold mb-2">Depósito / Saque</h2>
+  <input id="valor-deposito" type="number" step="0.01" placeholder="Valor USD" class="w-full p-2 rounded mb-2 text-black">
+  <div class="grid grid-cols-2 gap-4">
+    <button onclick="criarPagamentoVendorapay()" class="w-full bg-blue-600 p-3 rounded font-bold">💳 Depositar</button>
+    <button onclick="saqueVendorapay()" class="w-full bg-red-600 p-3 rounded font-bold">🏧 Sacar</button>
+  </div>
+</div>
+
+<!-- Tarefas / Mini Games -->
+<div class="card w-full max-w-lg">
+  <h2 class="text-2xl font-semibold mb-4">Atividades</h2>
+  <div class="mb-4">
+    <button onclick="ativarTimeToEarn()" class="w-full bg-green-600 p-3 rounded font-bold">💨 Ganhar por tempo (Time To Earn)</button>
+  </div>
+  <div class="mb-4">
+    <button onclick="startAviador()" class="w-full bg-yellow-600 p-3 rounded font-bold">✈️ Aviador Simulado</button>
+    <button id="cashOutBtn" onclick="cashOutAviador()" class="w-full bg-purple-600 p-3 rounded font-bold mt-2 hidden">Cash Out</button>
+    <div class="w-full h-4 bg-gray-700 rounded mt-2 overflow-hidden">
+      <div id="aviadorBar" class="h-4 bg-gradient-to-r from-blue-400 to-purple-600 w-0"></div>
     </div>
-    <nav class="space-x-3">
-      <a href="#jogos" class="text-sm text-slate-200">Jogos</a>
-      <a href="#painel" class="text-sm text-slate-200">Painel</a>
-    </nav>
-  </header>
-
-  <main class="max-w-5xl mx-auto p-6 space-y-8">
-    <!-- Hero -->
-    <section class="text-center py-8">
-      <h2 class="text-3xl font-bold neon">Ganhe com tarefas, tempo e jogos</h2>
-      <p class="text-slate-300 mt-2">Time To Earn • Aviador • Raspadinha • Roleta — tudo simulado e persistente no navegador.</p>
-    </section>
-
-    <!-- Painel -->
-    <section id="painel" class="grid md:grid-cols-2 gap-4">
-      <div class="glass p-4 rounded-xl">
-        <h3 class="text-lg font-semibold">Saldo</h3>
-        <div class="mt-3 flex items-end justify-between">
-          <div>
-            <div id="balance-usd" class="text-2xl font-extrabold text-sky-400">$0.00 USD</div>
-            <div id="balance-mzn" class="text-sm text-slate-300">≈ 0.00 MZN</div>
-          </div>
-          <div class="text-right">
-            <button id="withdraw-btn" class="btn px-4 py-2 rounded-lg bg-gradient-to-r from-sky-500 to-violet-600 text-white">Sacar</button>
-            <div class="text-xs text-slate-300 mt-1">Via PayPal / Vendorapay (simulado)</div>
-          </div>
-        </div>
-
-        <div class="mt-4">
-          <label class="text-xs text-slate-300">Sacar como:</label>
-          <select id="withdraw-method" class="w-full mt-1 p-2 rounded bg-black/30">
-            <option>PayPal</option>
-            <option>Vendorapay</option>
-          </select>
-          <input id="withdraw-amount" type="number" step="0.01" placeholder="Valor USD" class="w-full mt-2 p-2 rounded bg-black/30" />
-        </div>
-      </div>
-
-      <div class="glass p-4 rounded-xl">
-        <h3 class="text-lg font-semibold">Histórico</h3>
-        <ul id="history" class="text-sm mt-3 max-h-40 overflow-auto text-slate-300 space-y-2"></ul>
-      </div>
-
-      <div class="glass p-4 rounded-xl md:col-span-2">
-        <h4 class="font-semibold">Gráfico de ganhos (semana)</h4>
-        <canvas id="earnChart" height="80"></canvas>
-      </div>
-    </section>
-
-    <!-- Jogos -->
-    <section id="jogos" class="grid md:grid-cols-3 gap-6">
-      <!-- Time To Earn -->
-      <div class="glass p-4 rounded-xl text-center">
-        <h4 class="font-semibold text-yellow-300">⏱ Time To Earn</h4>
-        <p class="text-sm text-slate-300 mt-2">Ganha automaticamente por minuto, mesmo quando fechado (calculado no reabrir).</p>
-        <div class="mt-4">
-          <div id="tte-display" class="text-2xl font-bold">$0.00</div>
-          <div class="text-xs text-slate-300 mt-1">Ganhos por minuto: <strong>0.02 USD</strong></div>
-        </div>
-        <div class="mt-4">
-          <button id="tte-manual" class="btn px-4 py-2 rounded-lg bg-yellow-500 text-black">Receber agora</button>
-        </div>
-      </div>
-
-      <!-- Aviador -->
-      <div class="glass p-4 rounded-xl text-center">
-        <h4 class="font-semibold text-rose-400">✈ Aviador (Crash)</h4>
-        <p class="text-sm text-slate-300 mt-2">Aposte e cashout antes do avião cair.</p>
-
-        <div class="mt-3">
-          <label class="text-xs text-slate-300">Aposta (USD)</label>
-          <input id="avi-bet" type="number" step="0.01" value="0.50" class="w-full mt-1 p-2 rounded bg-black/20" />
-        </div>
-
-        <div class="mt-3 w-full bg-slate-800 rounded-lg h-8 overflow-hidden">
-          <div id="aviador-bar"></div>
-        </div>
-        <div class="mt-2 flex gap-2">
-          <button id="avi-start" class="btn flex-1 px-3 py-2 rounded bg-red-600">Iniciar</button>
-          <button id="avi-cashout" class="btn flex-1 px-3 py-2 rounded bg-emerald-500" disabled>Cashout</button>
-        </div>
-        <div class="mt-2 text-sm text-slate-300">Multiplicador atual: <span id="avi-mult">1.00x</span></div>
-      </div>
-
-      <!-- Raspadinha + Roleta -->
-      <div class="glass p-4 rounded-xl text-center">
-        <h4 class="font-semibold text-green-300">🎫 Raspadinha & Roleta</h4>
-        <p class="text-sm text-slate-300 mt-2">Clique para raspar. Gire a roleta para apostar.</p>
-
-        <div class="mt-3">
-          <div class="raspadinha" id="scratch">CLIQUE</div>
-          <div id="scratch-result" class="text-slate-200 mt-3"></div>
-        </div>
-
-        <hr class="my-4 border-slate-700" />
-
-        <div id="roleta" class="mx-auto mb-2">
-          <div id="roleta-inner"></div>
-          <div id="roleta-pointer"></div>
-        </div>
-        <div class="flex gap-2">
-          <input id="roleta-bet" type="number" step="0.01" value="0.50" class="w-1/2 p-2 rounded bg-black/20" />
-          <button id="spin-btn" class="btn flex-1 px-3 py-2 rounded bg-indigo-600">Girar Roleta</button>
-        </div>
-        <div id="roleta-result" class="mt-2 text-slate-200"></div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Floating WhatsApp -->
-  <a href="https://wa.me/258840000000" target="_blank" class="fixed bottom-6 right-6 bg-green-500 p-3 rounded-full shadow-lg">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M20.52 3.48A11.86 11.86 0 0012 0C5.373 0 .01 5.373.01 12.002a11.6 11.6 0 001.6 5.6L0 24l6.6-1.64A11.9 11.9 0 0012 24c6.627 0 12-5.373 12-11.998 0-3.2-1.246-6.2-3.48-8.522z"/></svg>
-  </a>
+  </div>
+  <div class="mb-4">
+    <button onclick="raspadinha()" class="w-full bg-pink-600 p-3 rounded font-bold">🎟️ Raspadinha</button>
+  </div>
+  <div class="mb-4">
+    <button onclick="roleta()" class="w-full bg-purple-600 p-3 rounded font-bold">🎡 Roleta</button>
+  </div>
+  <div class="mb-4">
+    <button onclick="ganharClick2()" class="w-full bg-orange-600 p-3 rounded font-bold">🖱️ Click2/Tarefas</button>
+  </div>
+</div>
 
 <script>
-AOS.init();
+const TAXA_CAMBIO = 63.5;
+const USER = 'user1';
+let timeToEarnAtivo = false;
+let aviadorActive = false;
+let aviadorValue = 1;
+let aviadorSpeed = 0.01;
+let aviadorInterval = null;
 
-const TAXA = 64; // USD -> MZN (simulada)
-const TTE_RATE_PER_MIN = 0.02; // USD por minuto
-
-// State (persistido)
-let saldoUSD = parseFloat(localStorage.getItem('mz_saldo')) || 0;
-let history = JSON.parse(localStorage.getItem('mz_history')) || [];
-let lastSeen = parseInt(localStorage.getItem('mz_lastSeen')) || Date.now();
-let chartData = JSON.parse(localStorage.getItem('mz_chart')) || [0,0,0,0,0,0,0];
-
-// UI refs
-const usdEl = document.getElementById('balance-usd');
-const mznEl = document.getElementById('balance-mzn');
-const histEl = document.getElementById('history');
-const tteDisplay = document.getElementById('tte-display');
-
-// chart
-const ctx = document.getElementById('earnChart').getContext('2d');
-const earnChart = new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'],
-    datasets: [{ label:'Ganhos (USD)', data: chartData, borderColor:'#9f7aea', backgroundColor:'rgba(159,122,234,0.18)', fill:true, tension:0.3 }]
-  },
-  options: { plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
-});
-
-// helper: persist
-function saveState(){
-  localStorage.setItem('mz_saldo', saldoUSD);
-  localStorage.setItem('mz_history', JSON.stringify(history));
-  localStorage.setItem('mz_lastSeen', Date.now());
-  localStorage.setItem('mz_chart', JSON.stringify(earnChart.data.datasets[0].data));
+// Atualiza saldo e histórico
+function updateBalanceFromServer(saldoUSD, historico){
+  document.getElementById('saldo-usd').innerText = saldoUSD.toFixed(2);
+  document.getElementById('saldo-mzn').innerText = (saldoUSD*TAXA_CAMBIO).toFixed(2);
+  const histEl = document.getElementById('historico');
+  histEl.innerHTML = '';
+  historico.forEach(item => { const li=document.createElement('li'); li.innerText=item; histEl.appendChild(li); });
 }
 
-// helper: update UI
-function render(){
-  usdEl.innerText = `$${saldoUSD.toFixed(2)} USD`;
-  mznEl.innerText = `≈ ${(saldoUSD * TAXA).toFixed(2)} MZN`;
-  histEl.innerHTML = history.slice(0,40).map(h => `<li>${h}</li>`).join('');
-  tteDisplay.innerText = `$${(saldoUSD).toFixed(2)}`;
-  earnChart.update();
-  saveState();
-}
-render();
-
-// --- Time To Earn: calcular tempo fechado e aplicar ganhos ---
-(function applyOfflineTTE(){
-  const now = Date.now();
-  const mins = Math.floor((now - lastSeen) / 60000);
-  if(mins > 0){
-    const ganho = mins * TTE_RATE_PER_MIN;
-    saldoUSD += ganho;
-    history.unshift(`TimeToEarn (offline): +$${ganho.toFixed(2)}`);
-    // Add to chart last day (random approach: add to today's slot index 6)
-    const idx = (new Date()).getDay() - 1; // 0..6 (Mon..Sun) - not critical
-    const pos = (idx >= 0 ? idx : 6);
-    earnChart.data.datasets[0].data[pos] += parseFloat(ganho.toFixed(2));
-  }
-  lastSeen = now;
-  render();
-})();
-setInterval(()=>{
-  // award per minute if tab open
-  saldoUSD += TTE_RATE_PER_MIN;
-  history.unshift(`TimeToEarn (online): +$${TTE_RATE_PER_MIN.toFixed(2)}`);
-  // add to random day in chart (demo)
-  earnChart.data.datasets[0].data[Math.floor(Math.random()*7)] += TTE_RATE_PER_MIN;
-  render();
-}, 60000); // every minute
-
-document.getElementById('tte-manual').addEventListener('click', ()=>{
-  saldoUSD += TTE_RATE_PER_MIN;
-  history.unshift(`TimeToEarn (manual): +$${TTE_RATE_PER_MIN.toFixed(2)}`);
-  earnChart.data.datasets[0].data[Math.floor(Math.random()*7)] += TTE_RATE_PER_MIN;
-  render();
-  // optional: notify backend
-  fetch('/api/time-to-earn', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ user:'user1', valor: TTE_RATE_PER_MIN }) }).catch(()=>{/*ignore*/});
-});
-
-// --- Generic gain helper (local + server) ---
-function registerGain(origem, valor){
-  saldoUSD += valor;
-  history.unshift(`${origem}: +$${valor.toFixed(2)}`);
-  earnChart.data.datasets[0].data[Math.floor(Math.random()*7)] += valor;
-  render();
-  // try post to server (if available)
-  fetch('/api/ganho', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ user:'user1', valor, origem }) })
-    .then(r => r.ok ? r.json() : null).catch(()=>{/*backend optional*/});
+// Confetes
+function spawnCoin(){
+  const coinContainer = document.getElementById('coin-container');
+  const coin=document.createElement('div');
+  coin.classList.add('coin');
+  coin.style.left=Math.random()*90+'%';
+  coinContainer.appendChild(coin);
+  setTimeout(()=>coin.remove(),1500);
 }
 
-// --- Simple tasks (buttons) ---
-function ganhar(origem, valor){ registerGain(origem, valor); }
-
-// --- Aviador (Crash) full animation ---
-let aviState = { running:false, mult:1, crashAt: null, interval:null };
-const aviBar = document.getElementById('aviador-bar');
-const aviStart = document.getElementById('avi-start');
-const aviCash = document.getElementById('avi-cashout');
-const aviMultLabel = document.getElementById('avi-mult');
-
-function resetAviadorUI(){
-  aviBar.style.width = '0%';
-  aviMultLabel.innerText = '1.00x';
-  aviCash.disabled = true;
-  aviStart.disabled = false;
+// Backend: fetch saldo
+async function fetchSaldo(){
+  try {
+    const res = await fetch(`/api/saldo/${USER}`);
+    const j = await res.json();
+    if(j && typeof j.saldoUSD==='number'){updateBalanceFromServer(j.saldoUSD,j.historico);}
+  } catch(e){ console.warn('Erro fetch saldo', e); }
 }
-resetAviadorUI();
 
-aviStart.addEventListener('click', ()=>{
-  if(aviState.running) return;
-  const bet = parseFloat(document.getElementById('avi-bet').value) || 0;
-  if(bet <= 0) return alert('Informe uma aposta válida.');
-  // ensure enough balance (allow negative if you want, here we don't deduct until lost)
-  // initialize round
-  aviState.running = true;
-  aviState.mult = 1.0;
-  aviState.crashAt = +(Math.random() * 6 + 1).toFixed(2); // crash between 1 and 7
-  aviState.bet = bet;
-  aviStart.disabled = true;
-  aviCash.disabled = false;
-  // visually grow bar & multiplier
-  aviState.interval = setInterval(()=>{
-    aviState.mult = +(aviState.mult + (Math.random()*0.12 + 0.03)).toFixed(2);
-    aviMultLabel.innerText = aviState.mult.toFixed(2) + 'x';
-    // width mapped to multiplier but capped for display
-    let pct = Math.min(aviState.mult / 8 * 100, 100);
-    aviBar.style.width = pct + '%';
-    // crash condition
-    if(aviState.mult >= aviState.crashAt){
-      // crash: lose bet
-      clearInterval(aviState.interval);
-      aviState.running = false;
-      aviBar.style.width = '100%';
-      setTimeout(()=> {
-        alert(`O avião caiu em ${aviState.crashAt}x. Você perdeu $${aviState.bet.toFixed(2)}.`);
-        history.unshift(`Aviador: -$${aviState.bet.toFixed(2)} (crash ${aviState.crashAt}x)`);
-        // deduct bet (simulate loss)
-        saldoUSD -= aviState.bet;
-        earnChart.data.datasets[0].data[Math.floor(Math.random()*7)] += 0;
-        render();
-        resetAviadorUI();
-      }, 300);
-    }
-  }, 120);
-});
-
-// Cashout handler
-aviCash.addEventListener('click', ()=>{
-  if(!aviState.running) return;
-  clearInterval(aviState.interval);
-  aviState.running = false;
-  const gross = +(aviState.bet * aviState.mult).toFixed(2);
-  registerGain(`Aviador x${aviState.mult.toFixed(2)}`, gross);
-  alert(`Cashout! Você recebeu $${gross.toFixed(2)} USD (aposta $${aviState.bet.toFixed(2)} x${aviState.mult.toFixed(2)})`);
-  resetAviadorUI();
-});
-
-// --- Raspadinha (scratch) ---
-const scratch = document.getElementById('scratch');
-const scratchResult = document.getElementById('scratch-result');
-scratch.addEventListener('click', ()=>{
-  const prize = +(Math.random() * 1.2).toFixed(2); // up to $1.20
-  if(Math.random() < 0.15) { // 15% chance to be jackpot small
-    const jackpot = +(Math.random()*3 + 1).toFixed(2);
-    registerGain('Raspadinha Jackpot', jackpot);
-    scratchResult.innerText = `Prêmio: $${jackpot.toFixed(2)}!`;
-  } else {
-    registerGain('Raspadinha', prize);
-    scratchResult.innerText = `Prêmio: $${prize.toFixed(2)}`;
-  }
-  scratch.classList.add('opacity-60');
-  setTimeout(()=> scratch.classList.remove('opacity-60'), 400);
-});
-
-// --- Roleta (spin) ---
-const roletaInner = document.getElementById('roleta-inner');
-const spinBtn = document.getElementById('spin-btn');
-const roletaBetInput = document.getElementById('roleta-bet');
-const roletaResult = document.getElementById('roleta-result');
-
-spinBtn.addEventListener('click', ()=>{
-  const bet = parseFloat(roletaBetInput.value) || 0;
-  if(bet <= 0) return alert('Informe uma aposta válida.');
-  // start spin animation
-  const spins = Math.floor(Math.random() * 5) + 6; // 6..10 spins
-  const anglePerSector = 360 / 16; // 16 sectors we created in CSS
-  const landingSector = Math.floor(Math.random() * 16); // 0..15
-  // compute final rotation such that pointer points to landing sector
-  const finalAngle = spins * 360 + landingSector * anglePerSector + anglePerSector/2;
-  roletaInner.style.transition = 'transform 3s cubic-bezier(.2,.9,.2,1)';
-  roletaInner.style.transform = `rotate(${finalAngle}deg)`;
-  spinBtn.disabled = true;
-  // after animation ends determine color
-  setTimeout(()=>{
-    // sector color mapping: sectors 0,2,4... are red (based on our conic-gradient), odd are black
-    const isRed = (landingSector % 2 === 0);
-    if(isRed){
-      const payout = +(bet * 2).toFixed(2); // 2x
-      registerGain('Roleta (vermelho)', payout);
-      roletaResult.innerText = `VENCEU! Vermelho — +$${payout.toFixed(2)}`;
-    } else {
-      roletaResult.innerText = `Perdeu (Preto). -$${bet.toFixed(2)}`;
-      // deduct bet
-      saldoUSD -= bet;
-      history.unshift(`Roleta: -$${bet.toFixed(2)}`);
-    }
-    // reset rotation for next spin after brief pause
-    setTimeout(()=>{ roletaInner.style.transition = 'none'; roletaInner.style.transform = 'rotate(0deg)'; spinBtn.disabled = false; render(); }, 300);
-  }, 3200);
-});
-
-// --- Withdraw button (calls simulated /api/sacar if available) ---
-document.getElementById('withdraw-btn').addEventListener('click', ()=>{
-  const amount = parseFloat(document.getElementById('withdraw-amount').value) || 0;
-  const method = document.getElementById('withdraw-method').value || 'PayPal';
-  if(amount <= 0) return alert('Informe um valor de saque.');
-  if(amount > saldoUSD) return alert('Saldo insuficiente.');
-
-  // Try call server; if fails, simulate offline success
-  fetch('/api/sacar', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ user:'user1', valor: amount, metodo: method }) })
-    .then(r => r.json())
-    .then(json => {
-      if(json && json.success){
-        history.unshift(`Saque: -$${amount.toFixed(2)} via ${method}`);
-        saldoUSD = json.saldoAtual || (saldoUSD - amount);
-        alert(json.message || 'Saque efetuado com sucesso (simulado).');
-        render();
-      } else {
-        // fallback if API returned error
-        history.unshift(`Saque (simulado): -$${amount.toFixed(2)} via ${method}`);
-        saldoUSD -= amount;
-        alert('Saque processado localmente (servidor indisponível ou retornou erro).');
-        render();
-      }
-    }).catch(()=> {
-      // server unavailable => simulate
-      history.unshift(`Saque (local): -$${amount.toFixed(2)} via ${method}`);
-      saldoUSD -= amount;
-      alert('Servidor indisponível — saque simulado localmente.');
-      render();
+// Vendorapay criar pagamento
+async function criarPagamentoVendorapay(){
+  const valor=parseFloat(document.getElementById('valor-deposito').value);
+  if(!valor || valor<=0){alert('Digite valor válido'); return;}
+  try {
+    const res=await fetch('/api/vendorapay/create',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({user:USER,amount:valor,currency:'USD'})
     });
-});
+    const j=await res.json();
+    if(j.success && j.paymentUrl){window.open(j.paymentUrl,'_blank'); pollSaldo();}
+    else{alert('Erro criar pagamento: '+(j.error || JSON.stringify(j.raw||j)));}
+  } catch(e){ console.error(e); alert('Erro criar pagamento'); }
+}
 
-// --- Simple task buttons for quick gains (demo) ---
-window.ganhar = function(origem, valor){
-  registerGain(origem, valor);
-};
+// Vendorapay saque
+async function saqueVendorapay(){
+  const valor=parseFloat(prompt("Digite valor em USD para saque:"));
+  if(!valor || valor<=0){alert('Valor inválido'); return;}
+  try {
+    const res=await fetch('/api/vendorapay/withdraw',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({user:USER,amount:valor,currency:'USD'})
+    });
+    const j=await res.json();
+    if(j.success){alert(`Saque solicitado: $${valor}`); fetchSaldo();}
+    else{alert('Erro saque: '+(j.error || JSON.stringify(j.raw||j)));}
+  } catch(e){ console.error(e); alert('Erro ao solicitar saque'); }
+}
 
-// update UI on load
-render();
+// Ganhos
+function adicionarGanho(valor, origem){
+  fetch('/api/ganho',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:USER,valor,origem})}).then(fetchSaldo);
+  if(valor>0) spawnCoin();
+}
 
-// ensure save before unload
-window.addEventListener('beforeunload', ()=> {
-  saveState();
-});
+// Time To Earn
+function ativarTimeToEarn(){
+  if(timeToEarnAtivo) return alert('Time To Earn já ativo!');
+  timeToEarnAtivo=true;
+  setInterval(()=>adicionarGanho(0.01,'TimeToEarn'),1000);
+  alert('Time To Earn ativado! +$0.01/s');
+}
+
+// Aviador
+function startAviador(){
+  if(aviadorActive) return;
+  aviadorActive=true;
+  aviadorValue=1;
+  const bar=document.getElementById('aviadorBar');
+  const cashBtn=document.getElementById('cashOutBtn');
+  bar.style.width='0%';
+  cashBtn.style.display='block';
+  aviadorInterval=setInterval(()=>{
+    aviadorValue+=0.01;
+    bar.style.width=Math.min((aviadorValue-1)*20,100)+'%';
+    if(Math.random()<0.005){
+      clearInterval(aviadorInterval);
+      aviadorActive=false;
+      bar.style.width='0%';
+      cashBtn.style.display='none';
+      alert('Aviador terminou sem Cash Out! Perdeu.');
+    }
+  },50);
+}
+
+function cashOutAviador(){
+  if(!aviadorActive) return;
+  clearInterval(aviadorInterval);
+  aviadorActive=false;
+  const ganho=(aviadorValue-1).toFixed(2);
+  adicionarGanho(parseFloat(ganho),'Aviador x'+aviadorValue.toFixed(2));
+  document.getElementById('aviadorBar').style.width='0%';
+  document.getElementById('cashOutBtn').style.display='none';
+}
+
+// Raspadinha
+function raspadinha(){const chance=Math.random(); let ganho=0; if(chance<0.2) ganho=5; else if(chance<0.5) ganho=1; adicionarGanho(ganho,'Raspadinha');}
+
+// Roleta
+function roleta(){const escolha=Math.floor(Math.random()*6)+1; const resultado=Math.floor(Math.random()*6)+1; const ganho=(escolha===resultado)?3:0; adicionarGanho(ganho,'Roleta');}
+
+// Click2/Tarefas
+function ganharClick2(){const ganho=Math.random()*0.5; adicionarGanho(ganho,'Click2/Tarefa');}
+
+// Atualiza saldo a cada 10s
+setInterval(fetchSaldo,10000);
+fetchSaldo();
 </script>
+
 </body>
 </html>
