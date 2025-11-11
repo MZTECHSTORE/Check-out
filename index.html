@@ -1,137 +1,110 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MZ TECH STORE - Plataforma SPA</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-body { margin:0; font-family:'Inter',sans-serif; background:#0f111a; color:#fff; }
-#sidebar { width:220px; background:#1a1c2b; height:100vh; position:fixed; top:0; left:0; display:flex; flex-direction:column; }
-#sidebar h2 { color:#00f0ff; text-align:center; margin:20px 0; text-shadow:0 0 10px #00f0ff; }
-#sidebar button { padding:15px; margin:5px; border:none; background:#222438; color:#fff; border-radius:8px; cursor:pointer; transition:0.2s; }
-#sidebar button:hover{background:#00f0ff;color:#000;}
-#main { margin-left:220px; padding:20px; flex:1; }
-.card { background:#1a1c2b; padding:20px; border-radius:12px; margin-bottom:20px; box-shadow:0 0 15px #00f0ff; }
-.section { display:none; }
-#coin-container { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; }
-@keyframes coin-fall { 0%{transform:translateY(-50px) rotate(0deg);opacity:1;}100%{transform:translateY(200px) rotate(360deg);opacity:0;} }
-.coin { position:absolute; width:20px; height:20px; background:#00f0ff; border-radius:50%; animation:coin-fall 1s ease-out forwards; box-shadow:0 0 10px #00f0ff; }
-#wheel { width:200px;height:200px;border-radius:50%;border:5px solid #00f0ff; margin:0 auto; display:flex;align-items:center;justify-content:center; position:relative; }
-#pointer { position:absolute; top:-20px; left:50%; transform:translateX(-50%); width:0; height:0; border-left:15px solid transparent; border-right:15px solid transparent; border-bottom:30px solid #ff0055; }
-#raspadinha-area { width:200px; height:100px; background:#333; margin:10px auto; border-radius:8px; cursor:pointer; display:flex;align-items:center;justify-content:center; font-weight:bold; font-size:24px; color:#fff; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout Profissional - Pagamento Seguro</title>
+    <script src="https://www.paypal.com/sdk/js?client-id=AZPSW1Sr6x52LwKUtGD1v_r5i1-q-6pnXrkFxNZT7es0jV7HikEL7enB-jKM0VbhW6h7hIVb2IvLxa7I&currency=BRL&intent=capture"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .checkout-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        #paypal-button-container {
+            margin: 20px 0;
+        }
+        .security-info {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-top: 20px;
+        }
+        .security-info::before {
+            content: "🔒 ";
+            font-size: 1.2em;
+        }
+        /* Animação sutil para chamar atenção */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .checkout-container:hover {
+            animation: pulse 1s ease-in-out;
+        }
+    </style>
 </head>
 <body>
-
-<div id="sidebar">
-  <h2>MZ TECH STORE</h2>
-  <button onclick="showSection('dashboard')">🏠 Dashboard</button>
-  <button onclick="showSection('aviator')">✈️ Aviador</button>
-  <button onclick="showSection('roleta')">🎡 Roleta</button>
-  <button onclick="showSection('raspadinha')">🎟️ Raspadinha</button>
-  <button onclick="showSection('click2')">🖱️ Click2/Tarefas</button>
-</div>
-
-<div id="main">
-
-  <!-- Saldo -->
-  <div class="card">
-    <p>Saldo USD: <span id="saldo-usd">0.00</span>$</p>
-    <p>Saldo MZN: <span id="saldo-mzn">0.00</span>MZN</p>
-  </div>
-
-  <!-- Histórico -->
-  <div class="card">
-    <h2 class="text-xl font-bold mb-2">Histórico de Ganhos</h2>
-    <ul id="historico" class="list-disc pl-5 max-h-48 overflow-y-auto"></ul>
-  </div>
-
-  <!-- Depósito / Saque -->
-  <div class="card">
-    <h2 class="text-xl font-bold mb-2">Depósito / Saque</h2>
-    <input id="valor-deposito" type="number" step="0.01" placeholder="Valor USD" class="w-full p-2 rounded mb-2 text-black">
-    <div class="grid grid-cols-2 gap-4">
-      <button onclick="criarPagamentoVendorapay()" class="w-full bg-blue-600 p-3 rounded font-bold">💳 Depositar</button>
-      <button onclick="saqueVendorapay()" class="w-full bg-red-600 p-3 rounded font-bold">🏧 Sacar</button>
+    <div class="checkout-container">
+        <h1>Finalizar Compra</h1>
+        <p>Pague com Visa, MasterCard ou PayPal de forma segura e rápida.</p>
+        <div id="paypal-button-container"></div>
+        <div class="security-info">
+            Seu pagamento é protegido com criptografia avançada. Valor total: R$ 100,00 (exemplo - ajuste no JS).
+        </div>
     </div>
-  </div>
 
-  <!-- Sections -->
-  <div id="dashboard" class="card section" style="display:block;">
-    <h2 class="text-xl font-bold mb-2">Dashboard</h2>
-    <p>Escolha uma atividade no menu lateral para começar a ganhar!</p>
-  </div>
-
-  <!-- Aviador -->
-  <div id="aviator" class="card section">
-    <h2 class="text-xl font-bold mb-2">Aviador</h2>
-    <div id="aviador-container" style="position:relative; height:200px; background:#222438; border-radius:12px;">
-      <div id="aviador-bar" style="height:8px;background:linear-gradient(90deg,#00f0ff,#a855f7);width:0%;"></div>
-      <div id="coin-container"></div>
-    </div>
-    <button id="startAviadorBtn" onclick="startAviador()" class="w-full bg-yellow-600 p-3 rounded font-bold mt-2">Iniciar Aviador</button>
-    <button id="cashOutBtn" onclick="cashOutAviador()" class="w-full bg-purple-600 p-3 rounded font-bold mt-2 hidden">Cash Out</button>
-  </div>
-
-  <!-- Roleta -->
-  <div id="roleta" class="card section">
-    <h2 class="text-xl font-bold mb-2">Roleta</h2>
-    <div id="wheel">
-      <div id="wheel-number" class="text-white text-4xl font-bold">0</div>
-      <div id="pointer"></div>
-    </div>
-    <button onclick="roleta()" class="w-full bg-purple-600 p-3 rounded font-bold mt-2">Girar Roleta</button>
-  </div>
-
-  <!-- Raspadinha -->
-  <div id="raspadinha" class="card section">
-    <h2 class="text-xl font-bold mb-2">Raspadinha</h2>
-    <div id="raspadinha-area" onclick="raspadinha()">Clique para raspar</div>
-  </div>
-
-  <!-- Click2 / Tarefas -->
-  <div id="click2" class="card section">
-    <h2 class="text-xl font-bold mb-2">Click2 / Tarefas</h2>
-    <button onclick="ganharClick2()" class="w-full bg-orange-600 p-3 rounded font-bold mt-2">Completar Tarefa</button>
-    <button onclick="ativarTimeToEarn()" class="w-full bg-green-600 p-3 rounded font-bold mt-2">💨 Time To Earn</button>
-  </div>
-
-</div>
-
-<script>
-const TAXA_CAMBIO=63.5;
-const USER='user1';
-let aviadorActive=false, aviadorValue=1, aviadorSpeed=0.01, aviadorInterval=null;
-let timeToEarnAtivo=false;
-
-function showSection(id){
-  document.querySelectorAll('.section').forEach(s=>s.style.display='none');
-  document.getElementById(id).style.display='block';
-}
-
-function updateBalanceFromServer(saldoUSD,historico){
-  document.getElementById('saldo-usd').innerText=saldoUSD.toFixed(2);
-  document.getElementById('saldo-mzn').innerText=(saldoUSD*TAXA_CAMBIO).toFixed(2);
-  const histEl=document.getElementById('historico'); histEl.innerHTML='';
-  historico.forEach(item=>{const li=document.createElement('li'); li.innerText=item; histEl.appendChild(li);});
-}
-
-function adicionarGanho(valor,origem){
-  fetch('/api/ganho',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({user:USER,valor,origem})}).then(fetchSaldo);
-  if(valor>0) spawnCoin();
-}
-
-function fetchSaldo(){
-  fetch(`/api/saldo/${USER}`).then(r=>r.json()).then(j=>{if(j && typeof j.saldoUSD==='number'){updateBalanceFromServer(j.saldoUSD,j.historico);}});
-}
-
-function spawnCoin(){
-  const coin=document.createElement('div'); coin.classList.add('coin'); coin.style.left=Math.random()*90+'%'; document.getElementById('coin-container').appendChild(coin); setTimeout(()=>coin.remove(),1500);
-}
-
-async function criarPagamentoVendorapay(){
-  const valor=parseFloat(document.getElementById('valor-deposito').value);
-  if(!valor || valor<=0){alert('Digite valor válido'); return;}
-  try{
-    const res=await fetch('/api/vendorapay/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON
+    <script>
+        // Configuração do botão PayPal com estilos profissionais
+        paypal.Buttons({
+            style: {
+                shape: 'rect',
+                color: 'gold',  // Cor dourada para destaque profissional
+                layout: 'vertical',
+                label: 'paypal',
+                tagline: false,
+                height: 50
+            },
+            createOrder: function(data, actions) {
+                // Defina o valor aqui (exemplo: R$ 100,00 em BRL)
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: '100.00'  // Altere este valor conforme necessário
+                        }
+                    }]
+                });
+            },
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(details) {
+                    // Aqui você pode redirecionar para uma página de sucesso ou enviar para o backend
+                    alert('Pagamento realizado com sucesso! Obrigado, ' + details.payer.name.given_name + '!');
+                    // Exemplo: window.location.href = 'sucesso.html';
+                });
+            },
+            onError: function(err) {
+                console.error('Erro no pagamento:', err);
+                alert('Ocorreu um erro no processamento. Tente novamente.');
+            }
+        }).render('#paypal-button-container');
+    </script>
+</body>
+</html>
