@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout Profissional - Pagamento Seguro</title>
-    <script src="https://www.paypal.com/sdk/js?client-id=AZPSW1Sr6x52LwKUtGD1v_r5i1-q-6pnXrkFxNZT7es0jV7HikEL7enB-jKM0VbhW6h7hIVb2IvLxa7I&currency=BRL&intent=capture"></script>
+    <script src="https://www.paypal.com/sdk/js?cliente-id=AZPSW1Sr6x52LwKUtGD1v_r5i1-q-6pnXrkFxNZT7es0jV7HikEL7enB-jKM0VbhW6h7hIVb2IvLxa7I&currency=BRL&intent=capture"></script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -60,19 +60,44 @@
         .checkout-container:hover {
             animation: pulse 1s ease-in-out;
         }
+        .warning {
+            background: rgba(255, 215, 0, 0.2);
+            border: 1px solid #ffd700;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+            color: #ffd700;
+            font-size: 0.9em;
+        }
+        .success {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+            border-radius: 10px;
+            padding: 10px;
+            margin-top: 20px;
+            color: #00ff00;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
     <div class="checkout-container">
         <h1>Finalizar Compra</h1>
+        <div class="warning">
+            ⚠️ Versão de Produção: Substitua "SEU_CLIENT_ID_PRODUCAO_AQUI" pelo seu Client ID LIVE do PayPal.
+        </div>
         <p>Pague com Visa, MasterCard ou PayPal de forma segura e rápida.</p>
         <div id="paypal-button-container"></div>
         <div class="security-info">
             Seu pagamento é protegido com criptografia avançada. Valor total: R$ 100,00 (exemplo - ajuste no JS).
         </div>
+        <div id="result" style="display: none;"></div>
     </div>
 
     <script>
+        // URL do seu backend Vercel
+        const BACKEND_URL = 'https://checkout-backend-mztechstores-projects.vercel.app';
+
         // Configuração do botão PayPal com estilos profissionais
         paypal.Buttons({
             style: {
@@ -94,10 +119,28 @@
                 });
             },
             onApprove: function(data, actions) {
+                // Primeiro, capture no frontend (temporário; em prod, mova tudo pro backend)
                 return actions.order.capture().then(function(details) {
-                    // Aqui você pode redirecionar para uma página de sucesso ou enviar para o backend
-                    alert('Pagamento realizado com sucesso! Obrigado, ' + details.payer.name.given_name + '!');
-                    // Exemplo: window.location.href = 'sucesso.html';
+                    // Agora, envie para o backend para validação final e logs
+                    fetch(`${BACKEND_URL}/capturar-pagamento`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orderID: data.orderID })
+                    })
+                    .then(response => response.json())
+                    .then(backendData => {
+                        if (backendData.success) {
+                            document.getElementById('result').innerHTML = `<div class="success">✅ Pagamento confirmado pelo backend! ID: ${backendData.details.id}</div>`;
+                            document.getElementById('result').style.display = 'block';
+                            alert('Pagamento realizado com sucesso! Obrigado!');
+                        } else {
+                            alert('Erro na confirmação: ' + backendData.error);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Erro no backend:', err);
+                        alert('Pagamento aprovado, mas erro na confirmação. Contate suporte.');
+                    });
                 });
             },
             onError: function(err) {
