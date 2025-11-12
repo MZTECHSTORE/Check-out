@@ -3,140 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout - MZ TECH STORE</title>
+    <title>Checkout Profissional - MZ TECH STORE</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <!-- PayPal SDK - Use Client ID LIVE para produção -->
     <script src="https://www.paypal.com/sdk/js?client-id=AZPSW1Sr6x52LwKUtGD1v_r5i1-q-6pnXrkFxNZT7es0jV7HikEL7enB-jKM0VbhW6h7hIVb2IvLxa7I&currency=MZN&intent=capture"></script>
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #000000; /* Preto */
-            color: #FFFFFF;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #ffffff;
             margin: 0;
             padding: 0;
-        }
-        .header {
-            background-color: #DC143C; /* Vermelho */
-            padding: 20px;
-            text-align: center;
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .checkout-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         .logo {
             width: 150px;
             height: auto;
-            margin-right: 20px;
+            margin-bottom: 20px;
         }
-        .header h1 {
-            color: #FFFFFF;
-            margin: 0;
-            font-size: 2em;
-        }
-        .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #1a1a1a; /* Tom escuro preto */
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
         .cart-item {
             display: flex;
             justify-content: space-between;
             padding: 10px 0;
-            border-bottom: 1px solid #333;
-            color: #FFFFFF;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            text-align: left;
         }
         .total {
             text-align: right;
             font-size: 1.5em;
-            color: #DC143C; /* Vermelho para destaque */
+            color: #ffd700;
             margin: 20px 0;
+            font-weight: bold;
         }
-        .payment-section {
-            background-color: #000000;
-            padding: 20px;
-            border-radius: 5px;
-            margin: 20px 0;
-        }
-        .payment-section h3 {
-            color: #1E90FF; /* Azul tecnológico */
-            text-align: center;
-        }
-        .paypal-section {
-            margin: 20px 0;
-            padding: 15px;
-            background: #333;
-            border-radius: 5px;
-        }
-        .payment-button {
-            background-color: #1E90FF; /* Azul tecnológico */
-            color: #FFFFFF;
-            border: none;
-            padding: 15px;
-            width: 100%;
-            margin: 10px 0;
-            border-radius: 5px;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .payment-button:hover {
-            background-color: #DC143C; /* Vermelho no hover */
-        }
-        .other-methods {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            margin-top: 20px;
-        }
-        .method-btn {
-            background-color: #333;
-            color: #FFFFFF;
-            border: 1px solid #1E90FF;
-            padding: 10px;
-            text-align: center;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .method-btn:hover {
-            background-color: #1E90FF;
+        p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            opacity: 0.9;
         }
         #paypal-button-container {
-            margin: 10px 0;
+            margin: 20px 0;
         }
-        .phone-input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #333;
-            border-radius: 5px;
-            background: #000;
-            color: #FFF;
-        }
-        .result {
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .success { background: rgba(0, 255, 0, 0.2); color: #00FF00; }
-        .error { background: rgba(255, 0, 0, 0.2); color: #FF0000; }
-        .note {
+        .security-info {
             font-size: 0.9em;
-            color: #AAA;
-            margin-top: 5px;
+            opacity: 0.8;
+            margin-top: 20px;
+        }
+        .security-info::before {
+            content: "🔒 ";
+            font-size: 1.2em;
+        }
+        /* Animação sutil para chamar atenção */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .checkout-container:hover {
+            animation: pulse 1s ease-in-out;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <img src="https://via.placeholder.com/150x50/DC143C/FFFFFF?text=MZ+TECH+STORE" alt="Logo MZ TECH STORE" class="logo">
+    <div class="checkout-container">
+        <img src="https://via.placeholder.com/150x50/1e3c72/FFFFFF?text=MZ+TECH+STORE" alt="Logo MZ TECH STORE" class="logo">
         <h1>Finalizar Compra</h1>
-    </div>
-    
-    <div class="container">
-        <h2>Seu Carrinho</h2>
+        <p>Pague com Visa, MasterCard ou PayPal de forma segura e rápida.</p>
+        
         <div class="cart-item">
             <span>Smartphone Galaxy S24</span>
             <span>1 x 1.200 MZN</span>
@@ -149,129 +101,45 @@
             Total: 2.000 MZN
         </div>
         
-        <div class="payment-section">
-            <h3>Escolha o Método de Pagamento</h3>
-            
-            <!-- Visa/MasterCard via PayPal -->
-            <div class="paypal-section">
-                <h4>Pagar com Visa ou MasterCard (via PayPal)</h4>
-                <p class="note">O botão PayPal permite pagamento direto com cartão sem conta PayPal. Fundos recebidos via PayMoz (API Key configurada no backend para payout).</p>
-                <div id="paypal-button-container"></div>
-            </div>
-            
-            <!-- Emola (Mock - Integre API Movitel/Emola no backend) -->
-            <div>
-                <h4>Pagar com Emola</h4>
-                <label for="emola-phone">Número para Emola (ex: +258 84 8649797):</label>
-                <input type="tel" id="emola-phone" class="phone-input" placeholder="+258 84 8649797">
-                <button class="method-btn" onclick="payWithEmola()">Pagar com Emola</button>
-            </div>
-            
-            <!-- Multicaixa Express via ProxyPay API -->
-            <div>
-                <h4>Pagar com Multicaixa Express</h4>
-                <label for="multicaixa-phone">Número de Telemóvel (ex: 900123456):</label>
-                <input type="tel" id="multicaixa-phone" class="phone-input" placeholder="900123456">
-                <button class="method-btn" onclick="payWithMulticaixaExpress()">Pagar com Multicaixa Express</button>
-                <small class="note">Nota: Cliente deve ter app Multicaixa Express instalado.</small>
-            </div>
-            
-            <!-- Outros -->
-            <button class="method-btn" onclick="payWithOther()" style="width: 100%;">Outros (API)</button>
+        <div id="paypal-button-container"></div>
+        <div class="security-info">
+            Seu pagamento é protegido com criptografia avançada. Recebemos diretamente no PayPal Business.
         </div>
-        
-        <div id="result" class="result" style="display: none;"></div>
     </div>
 
     <script>
-        // Configurações
-        const VALOR = '2000.00';  // Total em MZN
-
-        // ProxyPay API para Multicaixa Express (Direto no Frontend - Nota: Para produção, mova para backend; obtenha bearer token e pos_id no dashboard ProxyPay)
-        const proxyPayBaseUrl = 'https://api.sandbox.proxypay.co.ao';  // Use production: https://api.proxypay.co.ao
-        const bearerToken = 'SEU_BEARER_TOKEN_AQUI';  // Obtenha no ProxyPay (ex: ve70pfacln98c7pc8j802pisdsg0f9i2anj5jlc3vtsfitod)
-        const posId = 123;  // POS_ID atribuído pela EMIS/ProxyPay
-
-        // PayPal Buttons (direto para Visa/MasterCard; recebimento via PayMoz payout no backend com API Key '04ebf4bf-376f-4a1c-bd70-d305f542c704')
+        // Configuração do botão PayPal com estilos profissionais - Recebimento direto no PayPal
         paypal.Buttons({
             style: {
                 shape: 'rect',
-                color: 'blue',
+                color: 'gold',  // Cor dourada para destaque profissional
                 layout: 'vertical',
                 label: 'paypal',
                 tagline: false,
-                height: 45
+                height: 50
             },
-            createOrder: (data, actions) => actions.order.create({
-                purchase_units: [{ amount: { value: VALOR, currency_code: 'MZN' } }]
-            }),
-            onApprove: (data, actions) => actions.order.capture().then(details => {
-                // Envie para backend para payout via PayMoz: fetch(`${BACKEND_URL}/payout-paymoz`, { body: JSON.stringify({ orderID: data.orderID, amount: VALOR }) })
-                showResult('success', 'Pagamento aprovado! ID: ' + data.orderID + '. Fundos processados para PayMoz.');
-            }),
-            onError: (err) => showResult('error', 'Erro no PayPal: ' + err.message)
-        }).render('#paypal-button-container');
-
-        // Emola (Mock - Adicione endpoint /processar-emola no backend; use API Movitel USSD se disponível)
-        async function payWithEmola() {
-            const phone = document.getElementById('emola-phone').value.trim();
-            if (!phone) return showResult('error', 'Insira o número para Emola');
-            // TODO: Integre API Emola/Movitel no backend (ex: USSD Push)
-            // fetch(`${BACKEND_URL}/processar-emola`, { body: JSON.stringify({ valor: VALOR, numero_celular: phone }) })
-            showResult('success', 'Redirecionando para Emola... (Implemente API no backend para live)');
-            window.open('https://emola.co.mz/', '_blank');
-        }
-
-        // Multicaixa Express via ProxyPay API
-        async function payWithMulticaixaExpress() {
-            const mobile = document.getElementById('multicaixa-phone').value.trim();
-            if (!mobile) return showResult('error', 'Insira o número de telemóvel para Multicaixa Express');
-
-            if (bearerToken === 'SEU_BEARER_TOKEN_AQUI' || posId === 123) {
-                return showResult('error', 'Configure bearerToken e posId no JS para testar (obtenha no ProxyPay dashboard)');
-            }
-
-            const headers = {
-                'Authorization': `Bearer ${bearerToken}`,
-                'Content-Type': 'application/json',
-                'Idempotency-Key': `idemp-${Date.now()}`  // Único para evitar duplicatas
-            };
-            const payload = {
-                "type": "payment",
-                "pos_id": posId,
-                "mobile": mobile,
-                "amount": VALOR,
-                "callback_url": "https://seudominio.com/callback"  // Opcional: URL para notificação
-            };
-
-            try {
-                const response = await fetch(`${proxyPayBaseUrl}/opg/v1/transactions`, {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify(payload)
+            createOrder: function(data, actions) {
+                // Defina o valor aqui (exemplo: 2.000 MZN)
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: '2000.00'  // Altere este valor conforme necessário
+                        }
+                    }]
                 });
-                const data = await response.json();
-                if (response.ok) {
-                    showResult('success', 'Pagamento Multicaixa Express iniciado! Referência/ID: ' + data.id + '. Aceite no app Multicaixa Express.');
-                } else {
-                    showResult('error', 'Falha no Multicaixa Express: ' + (data.message || response.statusText));
-                }
-            } catch (err) {
-                showResult('error', 'Erro de conexão com ProxyPay: ' + err.message);
+            },
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(details) {
+                    // Pagamento capturado e recebido no PayPal Business
+                    alert('Pagamento realizado com sucesso! Obrigado, ' + details.payer.name.given_name + '! Fundos recebidos no PayPal.');
+                    // Em produção, redirecione para página de sucesso: window.location.href = '/sucesso.html?order=' + data.orderID;
+                });
+            },
+            onError: function(err) {
+                console.error('Erro no pagamento:', err);
+                alert('Ocorreu um erro no processamento. Tente novamente.');
             }
-        }
-
-        function payWithOther() {
-            showResult('info', 'Para outros métodos (ex: Multicaixa), integre via backend. Consulte docs específicas.');
-        }
-
-        function showResult(type, message) {
-            const resultDiv = document.getElementById('result');
-            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
-            resultDiv.innerHTML = `<div class="${type}">${icon} ${message}</div>`;
-            resultDiv.style.display = 'block';
-            setTimeout(() => resultDiv.style.display = 'none', 5000);
-        }
+        }).render('#paypal-button-container');
     </script>
 </body>
 </html>
