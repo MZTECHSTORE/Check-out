@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout Profissional - MZ TECH STORE</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://www.paypal.com/sdk/js?client-id=AZPSW1Sr6x52LwKUtGD1v_r5i1-q-6pnXrkFxNZT7es0jV7HikEL7enB-jKM0VbhW6h7hIVb2IvLxa7I&currency=USD&intent=capture"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=AZPSW1Sr6x52LwKUtGD1v_r5i1-q-6pnXrkFxNZT7es0jV7HikEL7enB-jKM0VbhW6h7hIVb2IvLxa7I&currency=MZN&intent=capture"></script>
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -118,14 +118,14 @@
         
         <div class="cart-item">
             <span>Smartphone Galaxy S24</span>
-            <span>1 x $24</span>
+            <span>1 x 1.200 MZN</span>
         </div>
         <div class="cart-item">
             <span>Fones Wireless AirPods</span>
-            <span>1 x $16</span>
+            <span>1 x 800 MZN</span>
         </div>
         <div class="total">
-            Total: $40
+            Total: 2.000 MZN
         </div>
         
         <!-- PayPal Button -->
@@ -143,11 +143,11 @@
         // Backend Vercel URL
         const BACKEND_URL = 'https://checkout-backend-mztechstores-projects.vercel.app';
 
-        // Vendorapay V1 API (Local/Prod)
+        // Vendorapay API Key e Config (V2 para MZN)
         const VENDORAPAY_API_KEY = 'tpkhv80bbjago1qm13ldt23b6k971u6mqg30ca1h2rlku4dw78r6z560g07t';
-        const VENDORAPAY_API_URL = 'https://vendorapay.com/api/payment/create'; // V1 Endpoint correto
+        const VENDORAPAY_API_URL = 'https://api.vendorapay.com/v2/payment'; // V2 para MZN
 
-        // PayPal Buttons (Mantido)
+        // PayPal Buttons (Atualizado para MZN)
         paypal.Buttons({
             style: {
                 shape: 'rect',
@@ -161,7 +161,7 @@
                 return actions.order.create({
                     purchase_units: [{
                         amount: {
-                            value: '40.00'
+                            value: '2000.00'  // Total 2.000 MZN
                         }
                     }]
                 });
@@ -189,13 +189,13 @@
             }
         }).render('#paypal-button-container');
 
-        // Vendorapay Integration (V1 - Endpoint Corrigido)
+        // Vendorapay Integration (V2 - Atualizado para MZN)
         async function payWithVendorapay() {
             const btn = document.getElementById('vendorapayBtn');
             btn.disabled = true;
             btn.textContent = 'Processando...';
 
-            const amount = '40.00'; // Total $40 USD
+            const amount = '2000.00'; // Total 2.000 MZN
             const context = 'Pagamento MZ TECH STORE - Produtos Eletrônicos';
             const callbackUrl = BACKEND_URL + '/vendorapay-callback'; // Webhook no backend
             const returnUrl = window.location.origin + '/sucesso'; // Página de sucesso
@@ -206,31 +206,32 @@
             };
             const payload = {
                 amount: amount,
+                currency: 'MZN', // V2 suporta MZN
                 context: context,
-                callbackUrl: callbackUrl,
                 returnUrl: returnUrl,
-                currency: 'USD', // V1 suporta USD se configurado
+                callbackUrl: callbackUrl,
+                type: 'REDIRECTED', // Checkout hosted (Visa/MC, M-Pesa, e-Mola)
                 enviroment: 'prod' // Mude para 'dev' para teste
             };
 
             try {
-                console.log('Criando pagamento Vendorapay V1...');
+                console.log('Criando pagamento Vendorapay V2...');
                 const response = await fetch(VENDORAPAY_API_URL, {
                     method: 'POST',
                     headers: headers,
                     body: JSON.stringify(payload)
                 });
                 const data = await response.json();
-                console.log('Resposta Vendorapay:', data); // Log para debug
+                console.log('Resposta Vendorapay V2:', data); // Log para debug
 
-                if (response.ok && data.success && data.redirectUrl) {
+                if (response.ok && data.success && data.checkoutUrl) {
                     // Redireciona para checkout Vendorapay
-                    window.location.href = data.redirectUrl;
+                    window.location.href = data.checkoutUrl;
                 } else {
                     alert('Erro Vendorapay: ' + (data.error || data.message || 'Falha no processamento. Verifique console F12.'));
                 }
             } catch (err) {
-                console.error('Erro de conexão Vendorapay:', err);
+                console.error('Erro de conexão Vendorapay V2:', err);
                 alert('Erro de conexão Vendorapay. Verifique internet e tente novamente. Detalhes no console F12.');
             } finally {
                 btn.disabled = false;
