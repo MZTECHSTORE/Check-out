@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout Profissional - MZ TECH STORE</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://www.paypal.com/sdk/js?client-id=AZPSW1Sr6x52LwKUtGD1v_r5i1-q-6pnXrkFxNZT7es0jV7HikEL7enB-jKM0VbhW6h7hIVb2IvLxa7I&currency=MZN&intent=capture"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=AZPSW1Sr6x52LwKUtGD1v_r5i1-q-6pnXrkFxNZT7es0jV7HikEL7enB-jKM0VbhW6h7hIVb2IvLxa7I&currency=USD&intent=capture"></script> <!-- USD para teste; mude para MZN após ativar -->
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -72,6 +72,15 @@
             content: "🔒 ";
             font-size: 1.2em;
         }
+        .warning {
+            background: rgba(255, 215, 0, 0.2);
+            border: 1px solid #ffd700;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+            color: #ffd700;
+            font-size: 0.9em;
+        }
         /* Animação sutil para chamar atenção */
         @keyframes pulse {
             0% { transform: scale(1); }
@@ -87,18 +96,21 @@
     <div class="checkout-container">
         <img src="https://via.placeholder.com/150x50/1e3c72/FFFFFF?text=MZ+TECH+STORE" alt="Logo MZ TECH STORE" class="logo">
         <h1>Finalizar Compra</h1>
+        <div class="warning">
+            ⚠️ Teste com USD (mude para MZN após ativar no dashboard sandbox).
+        </div>
         <p>Pague com Visa, MasterCard ou PayPal de forma segura e rápida.</p>
         
         <div class="cart-item">
             <span>Smartphone Galaxy S24</span>
-            <span>1 x 1.200 MZN</span>
+            <span>1 x 1.200 MZN (~$60 USD)</span>
         </div>
         <div class="cart-item">
             <span>Fones Wireless AirPods</span>
-            <span>1 x 800 MZN</span>
+            <span>1 x 800 MZN (~$40 USD)</span>
         </div>
         <div class="total">
-            Total: 2.000 MZN
+            Total: 2.000 MZN (~$100 USD)
         </div>
         
         <div id="paypal-button-container"></div>
@@ -108,6 +120,9 @@
     </div>
 
     <script>
+        // URL do backend Vercel (absoluto para GitHub Pages)
+        const BACKEND_URL = 'https://checkout-backend-mztechstores-projects.vercel.app';
+
         // Configuração do botão PayPal com estilos profissionais - Recebimento direto no PayPal
         paypal.Buttons({
             style: {
@@ -119,25 +134,37 @@
                 height: 50
             },
             createOrder: function(data, actions) {
-                // Defina o valor aqui (exemplo: 2.000 MZN)
+                // Defina o valor aqui (exemplo: ~$100 USD para teste)
                 return actions.order.create({
                     purchase_units: [{
                         amount: {
-                            value: '2000.00'  // Altere este valor conforme necessário
+                            value: '100.00'  // Altere este valor conforme necessário (USD para teste)
                         }
                     }]
                 });
             },
             onApprove: function(data, actions) {
                 return actions.order.capture().then(function(details) {
-                    // Pagamento capturado e recebido no PayPal Business
-                    alert('Pagamento realizado com sucesso! Obrigado, ' + details.payer.name.given_name + '! Fundos recebidos no PayPal.');
-                    // Em produção, redirecione para página de sucesso: window.location.href = '/sucesso.html?order=' + data.orderID;
+                    // Chama backend para confirmação segura e logs
+                    fetch(`${BACKEND_URL}/capturar-pagamento`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orderID: data.orderID })
+                    }).then(response => response.json()).then(backendData => {
+                        if (backendData.success) {
+                            alert('Pagamento realizado com sucesso! Obrigado, ' + details.payer.name.given_name + '! Fundos recebidos no PayPal.');
+                        } else {
+                            alert('Erro na confirmação: ' + backendData.error);
+                        }
+                    }).catch(err => {
+                        console.error('Erro no backend:', err);
+                        alert('Pagamento aprovado, mas erro na confirmação. Contate suporte.');
+                    });
                 });
             },
             onError: function(err) {
-                console.error('Erro no pagamento:', err);
-                alert('Ocorreu um erro no processamento. Tente novamente.');
+                console.error('Erro no pagamento PayPal:', err);
+                alert('Ocorreu um erro no processamento. Verifique console (F12) e tente novamente.');
             }
         }).render('#paypal-button-container');
     </script>
