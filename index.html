@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout Profissional - MZ TECH STORE</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://www.paypal.com/sdk/js?client-id=AZPSW1Sr6x52LwKUtGD1v_r5i1-q-6pnXrkFxNZT7es0jV7HikEL7enB-jKM0VbhW6h7hIVb2IvLxa7I&currency=USD&intent=capture"></script> <!-- USD para teste; mude para MZN após ativar -->
+    <script src="https://www.paypal.com/sdk/js?client-id=AZPSW1Sr6x52LwKUtGD1v_r5i1-q-6pnXrkFxNZT7es0jV7HikEL7enB-jKM0VbhW6h7hIVb2IvLxa7I&currency=USD&intent=capture"></script>
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -72,15 +72,6 @@
             content: "🔒 ";
             font-size: 1.2em;
         }
-        .warning {
-            background: rgba(255, 215, 0, 0.2);
-            border: 1px solid #ffd700;
-            border-radius: 10px;
-            padding: 10px;
-            margin-bottom: 20px;
-            color: #ffd700;
-            font-size: 0.9em;
-        }
         /* Animação sutil para chamar atenção */
         @keyframes pulse {
             0% { transform: scale(1); }
@@ -96,21 +87,18 @@
     <div class="checkout-container">
         <img src="https://via.placeholder.com/150x50/1e3c72/FFFFFF?text=MZ+TECH+STORE" alt="Logo MZ TECH STORE" class="logo">
         <h1>Finalizar Compra</h1>
-        <div class="warning">
-            ⚠️ Teste com USD (mude para MZN após ativar no dashboard sandbox).
-        </div>
         <p>Pague com Visa, MasterCard ou PayPal de forma segura e rápida.</p>
         
         <div class="cart-item">
             <span>Smartphone Galaxy S24</span>
-            <span>1 x 1.200 MZN (~$60 USD)</span>
+            <span>1 x $24</span>
         </div>
         <div class="cart-item">
             <span>Fones Wireless AirPods</span>
-            <span>1 x 800 MZN (~$40 USD)</span>
+            <span>1 x $16</span>
         </div>
         <div class="total">
-            Total: 2.000 MZN (~$100 USD)
+            Total: $40
         </div>
         
         <div id="paypal-button-container"></div>
@@ -134,11 +122,11 @@
                 height: 50
             },
             createOrder: function(data, actions) {
-                // Defina o valor aqui (exemplo: ~$100 USD para teste)
+                // Defina o valor aqui (exemplo: $40 USD)
                 return actions.order.create({
                     purchase_units: [{
                         amount: {
-                            value: '100.00'  // Altere este valor conforme necessário (USD para teste)
+                            value: '40.00'  // Altere este valor conforme necessário
                         }
                     }]
                 });
